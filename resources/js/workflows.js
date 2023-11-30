@@ -1,15 +1,13 @@
-const db = firebase.firestore();
-
 const headerLinks = document.querySelectorAll("#headerLinks a");
 headerLinks.forEach((link) => link.classList.remove("activeHeaderLink"));
 headerLinks[1].classList.add("activeHeaderLink");
 
 let allWorkflows = document.getElementById("allWorkflows");
-
+let workflowsForm = document.getElementById("workflowsForm");
 
 // change location for perticular workflows
-function enterIntoWorkflows(workflowsId) {
-    location.replace(`/workflows/${workflowsId}`);
+function enterIntoWorkflows(workflowsId, data) {
+    location.replace(`/workpace?workflowsId=${workflowsId}`);
 }
 
 // create table body for workflows list
@@ -79,18 +77,19 @@ getAllWorkflows();
 
 // open create workflows form
 function openWorkflowsForm() {
-    document.getElementById("workflowsForm").style.display = "flex";
+    workflowsForm.classList.add("active");
 }
 
 // close create workflows form
 function closeWorkflowsForm() {
-    document.getElementById("workflowsForm").style.display = "none";
+    workflowsForm.classList.remove("active");
 }
 
 // create new workflows
 async function createNewWorkflows() {
     let value = document.getElementById("workflowsName").value;
     if (!value) return notify("Workflow Name is required!", "danger");
+
     await firebase.auth().onAuthStateChanged((user) => {
         if (user) {
             let rootId = createId();
@@ -104,10 +103,9 @@ async function createNewWorkflows() {
             db.collection("workflows")
                 .add(body)
                 .then((docRef) => {
-                    closeWorkflowsModel();
+                    closeWorkflowsForm();
                     document.getElementById("workflowsName").value = "";
-                    location.replace(`/workflows?workflowsId=${docRef.id}`);
-                    return;
+                    location.replace(`/workpace?workflowsId=${docRef.id}`);
                 })
                 .catch((error) => {
                     console.error("Error adding document: ", error);
@@ -133,3 +131,12 @@ async function deleteWorkflows(workflowsId) {
             console.error("Error removing document: ", error);
         });
 }
+
+workflowsForm.addEventListener("click", function (e) {
+    if (e.target !== this) return;
+    closeWorkflowsForm();
+});
+
+document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") closeWorkflowsForm();
+});
