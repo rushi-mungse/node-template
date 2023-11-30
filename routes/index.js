@@ -12,4 +12,8 @@ router.get("/workflows", (req, res) => {
     return res.render("pages/workflows");
 });
 
+router.get("/workpace", (req, res) => {
+    return res.render("pages/workspace");
+});
+
 module.exports = router;
