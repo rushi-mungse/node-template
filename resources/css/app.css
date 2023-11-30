@@ -15,3 +15,162 @@
 .activeHeaderLink {
     color: var(--primary);
 }
+
+.inputBox,
+.inputBoxSecondary {
+    position: relative;
+    width: 100%;
+    margin-bottom: 40px;
+}
+
+.inputBoxSecondary {
+    margin-bottom: 20px;
+}
+
+.inputBox input,
+.inputBox select {
+    background: transparent;
+    border: none;
+    outline: none;
+    border: 1px solid var(--info);
+    color: var(--info);
+    letter-spacing: 1px;
+    width: 100%;
+    height: 40px;
+    font-size: 12px;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+.inputBox label {
+    position: absolute;
+    left: 0;
+    top: -20px;
+    letter-spacing: 1px;
+    color: var(--info);
+    pointer-events: none;
+    font-size: 12px;
+    font-weight: 200;
+    transform: translate(11px, 10px);
+    background-color: var(--dark);
+    margin: 0px 5px;
+}
+
+.inputBox input:focus,
+.inputBox input:valid,
+.inputBox select:focus,
+.inputBox select:valid {
+    border: 1px solid var(--primary);
+}
+
+.inputBox input:focus ~ label,
+.inputBox input:valid ~ label,
+.inputBox select:focus ~ label,
+.inputBox select:valid ~ label {
+    color: var(--primary);
+}
+
+.inputBoxSecondary input,
+.inputBoxSecondary select {
+    background: transparent;
+    border: none;
+    outline: none;
+    border: 1px solid var(--info);
+    color: var(--info);
+    letter-spacing: 1px;
+    width: 100%;
+    height: 40px;
+    font-size: 14px;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+.inputBoxSecondary label {
+    position: absolute;
+    left: 0;
+    top: -20px;
+    letter-spacing: 1px;
+    color: var(--info);
+    pointer-events: none;
+    font-size: 14px;
+    font-weight: 200;
+    transform: translate(11px, 10px);
+    background-color: var(--dark);
+    margin: 0px 5px;
+}
+
+.btn {
+    padding: 5px 10px;
+    border-radius: 7px;
+    color: var(--pure);
+    font-size: 12px;
+    font-weight: 300;
+    transition: all 0.3s ease-in-out;
+}
+
+.btn:hover {
+    background: var(--boxColor);
+}
+
+.btn-primary {
+    padding: 5px 10px;
+    background: var(--secondary);
+    border-radius: 7px;
+    color: var(--pure);
+    font-size: 12px;
+    font-weight: 300;
+    transition: all 0.3s ease-in-out;
+}
+
+.btn-primary:hover {
+    background: var(--primary);
+}
+
+.btn-secondary {
+    padding: 5px 10px;
+    background: var(--gray);
+    border-radius: 7px;
+    color: var(--dark);
+    font-size: 12px;
+    font-weight: 300;
+    transition: all 0.3s ease-in-out;
+}
+
+.btn-secondary:hover {
+    background: var(--pure);
+}
+
+#workflowsForm {
+    pointer-events: none;
+    opacity: 0;
+    transition: all 0.3s ease-in-out;
+}
+
+#workflowsForm.active {
+    pointer-events: auto;
+    opacity: 1;
+}
+
+#workflowsForm div {
+    transform: translateY(-100%);
+    transition: all 0.3s ease-in-out;
+}
+
+#workflowsForm.active div {
+    transform: translateY(0px);
+}
+
+#notificationBox {
+    display: none;
+    margin-top: 1rem;
+    animation: animate 0.5s forwards;
+}
+
+@keyframes animate {
+    from {
+        left: 0%;
+    }
+    to {
+        left: 1%;
+    }
+}
