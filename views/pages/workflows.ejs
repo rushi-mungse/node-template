@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://kit.fontawesome.com/96753e7782.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" href="/css/app.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>page | workflows</title>
+</head>
+
+<body>
+    <div class="w-screen h-screen bg-dark">
+        <div class="border-b-[0.5px] border-gray"><%- include("../components/header") %></div>
+
+        <div class="relative bg-dark">
+            <div class="hidden absolute top-12 items-center justify-center px-3 py-1 bg-boxColor text-sm rounded-sm z-20 left-10" id="notificationBox">
+                Good Morning
+            </div>
+
+            <div class="fixed bottom-4 w-screen">
+                <div class="container mx-auto flex items-center justify-end">
+                    <button class="bg-boxColor mx-right flex items-center justify-center hover:bg-zinc-600 rounded-sm px-2 text-pure py-1 transition-all" onclick="openWorkflowsForm()">
+                        <i class="fa-solid fa-add text-[12px]"></i>
+                        <span class="ml-[4px] text-sm">Create Workflows</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="container mx-auto pb-10">
+                <table class="table-fixed min-w-full mt-8" id="workflowsTable">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="text-black px-6 py-3 bg-gray text-left text-xs font-medium uppercase tracking-wider">
+                                Workflows Name
+                            </th>
+                            <th scope="col" class="text-black px-6 py-3 bg-gray text-left text-xs font-medium uppercase tracking-wider">
+                                Status
+                            </th>
+                            <th scope="col" class="text-black px-6 py-3 bg-gray text-left text-xs font-medium uppercase tracking-wider">
+                                Delete
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-500 text-pure" id="allWorkflows"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+<%- include("../scripts/firebase") %>
+<script src="js/workflows.js"></script>
+
+</html>
