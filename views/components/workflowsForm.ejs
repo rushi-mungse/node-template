@@ -1,0 +1,22 @@
+<div id="workflowsForm" class="fixed top-0 left-0 bg-zinc-900/90 items-center flex justify-center h-[100%] w-[100%] z-10">
+    <div class="relative bg-dark w-[560px] max-w-[90%] p-8 rounded-md flex flex-col items-center justify-center">
+        <button class="btn-secondary absolute top-4 right-4 bg-none outline-none text-sm" onclick="closeWorkflowsForm()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <h1 class="text-gray font-light tracking-wide mt-2 rounded-md px-4 py-1">
+            Create New Workflows
+        </h1>
+
+        <div class="inputBoxSecondary bg-dark my-6">
+            <input class="placeholder-gray-500 placeholder-opacity-30" name="name" type="text" id="workflowsName" required placeholder="Enter Workflows Name" />
+            <label for="workflowsName">Workflows Name</label>
+        </div>
+    
+        <div class="flex items-center justify-end w-[100%]">
+            <button class="btn-primary" onclick="createNewWorkflows()">
+                Create
+            </button>
+        </div>
+    </div>
+</div>

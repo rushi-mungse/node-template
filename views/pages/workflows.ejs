@@ -13,10 +13,12 @@
 
 <body>
     <div class="w-screen h-screen bg-dark">
+        <%- include("../components/workflowsForm") %>
+
         <div class="border-b-[0.5px] border-gray"><%- include("../components/header") %></div>
 
         <div class="relative bg-dark">
-            <div class="hidden absolute top-12 items-center justify-center px-3 py-1 bg-boxColor text-sm rounded-sm z-20 left-10" id="notificationBox">
+            <div class="absolute top-12 items-center justify-center px-3 py-1 bg-boxColor text-sm rounded-sm z-20 left-10" id="notificationBox">
                 Good Morning
             </div>
 
@@ -51,6 +53,7 @@
     </div>
 </body>
 <%- include("../scripts/firebase") %>
+<script src="js/utils.js"></script>
 <script src="js/workflows.js"></script>
 
 </html>
