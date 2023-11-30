@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/css/style.css" />
+    <title>Login | Page</title>
+</head>
+
+<body>
+    <div class="container mx-auto flex items-center justify-content flex-col mt-40">
+        <h1 class="text-blue-800 text-4xl mb-4">
+            Log In or Sing Up Your Account
+        </h1>
+        <sapn id="error" style="color: red" class="m-4"></sapn>
+        <form id="sign-up" onsubmit="login()" class="flex items-center justify-content flex-col border-2 border-gray-500 p-12">
+            <input type="text" placeholder="Enter Your Email" id="email" class="py-2 px-4 w-[300px] mb-4 rounded-[10px] border-2 border-gray-500" />
+            <input type="text" placeholder="Enter Password" id="password" class="py-2 px-4 w-[300px] mb-4 rounded-[10px] border-2 border-gray-500" />
+
+            <span class="text-blue-400 m-4 cursor-pointer" onclick="forgotPassword()">Forgot Password</span>
+            <div class="flex items-center justify-content">
+                <button type="submit" class="rounded-full px-8 py-2 outline-none bg-yellow-500">
+                    Log In
+                </button>
+                <button onclick="signUp()" class="rounded-full px-8 py-2 outline-none bg-blue-500 ml-12">
+                    Sign Up
+                </button>
+            </div>
+        </form>
+    </div>
+    <%- include("../cnd/firebase") %>
+        <script src="/js/login.js"></script>
+</body>
+
+</html>
