@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "nodemon server.js",
     "formate:check": "prettier . --check",
-    "formate:fix": "prettier . --write"
+    "formate:fix": "prettier . --write",
+    "watch" : "npx tailwindcss -i ./tailwind.css -o ./resources/css/styles.css --watch"
   },
   "keywords": [],
   "author": "",
