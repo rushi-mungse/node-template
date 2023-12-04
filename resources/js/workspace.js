@@ -3,26 +3,38 @@ headerLinks.forEach((link) => link.classList.remove("activeHeaderLink"));
 
 let ACTIONS = new Map();
 let currentActionType = "HTTP_REQUEST";
-let initialMouseX = 0, initialMouseY = 0, isTransposing = false;
+let initialMouseX = 0,
+    initialMouseY = 0,
+    isTransposing = false;
 const ROOT_ACTION = getAction("IF_CONDITION"); // TODO: Change starting action
 const searchParams = new URLSearchParams(window.location.search);
 const workflowId = searchParams.get("workflowId");
 
 const workspace = document.getElementById("workspace");
 let actionAndControlsForm = document.getElementById("actionAndControlsForm");
-let actionAndControlsFormWrapper = document.getElementById("actionAndControlsFormWrapper");
+let actionAndControlsFormWrapper = document.getElementById(
+    "actionAndControlsFormWrapper",
+);
 workspace.innerHTML = ROOT_ACTION.markupForMainAction();
 
-let WORKFLOW_NAME, UID, ROOT, CREATED_AT, DEBUG_MODE = false, RUN_CODE = true;
+let WORKFLOW_NAME,
+    UID,
+    ROOT,
+    CREATED_AT,
+    DEBUG_MODE = false,
+    RUN_CODE = true;
 
 function dragAction(event) {
     currentActionType = event.target.getAttribute("actionType");
-    console.log(currentActionType)
+    console.log(currentActionType);
 }
 
 function dropAction(parentEl, wrapperEl) {
-    let curAction = getAction(currentActionType), markup = curAction.markupForMainAction();
-    let parentId = parentEl.getAttribute("id"), parentAction = ACTIONS.get(parentId), parentChildId = null;
+    let curAction = getAction(currentActionType),
+        markup = curAction.markupForMainAction();
+    let parentId = parentEl.getAttribute("id"),
+        parentAction = ACTIONS.get(parentId),
+        parentChildId = null;
 
     if (wrapperEl === null) {
         // build connection in three action [parentEl, curActionEl, childActionEl]
@@ -34,7 +46,6 @@ function dropAction(parentEl, wrapperEl) {
     } else {
         let whichLink = wrapperEl.getAttribute("which-link");
         if (whichLink === "case") {
-
         } else if (whichLink === "trueAction") {
             parentChildId = parentAction.trueActionId;
             parentAction.trueActionId = curAction.actionId;
@@ -46,9 +57,7 @@ function dropAction(parentEl, wrapperEl) {
             curAction.parentActionId = parentId;
             curAction.childActionId = parentChildId;
         } else if (whichLink === "rightBoxId") {
-
         } else if (whichLink === "defaultCase") {
-
         }
         wrapperEl.innerHTML += markup;
     }
@@ -56,7 +65,7 @@ function dropAction(parentEl, wrapperEl) {
 
 function allowDropAction() {
     event.preventDefault();
-};
+}
 
 function openActionForm(element) {
     if (actionAndControlsForm.style.display === "flex") closeActionForm();
@@ -66,29 +75,29 @@ function openActionForm(element) {
             ? element[0].getAttribute("id")
             : element.getAttribute("id");
 
-    actionAndControlsFormWrapper.setAttribute('actionKey', key);
+    actionAndControlsFormWrapper.setAttribute("actionKey", key);
     let markup = ACTIONS.get(key).createActionForm();
     actionAndControlsFormWrapper.innerHTML = markup;
     actionAndControlsForm.style.display = "flex";
 
     toggleDebugBtn();
-};
+}
 
 function closeActionForm() {
     actionAndControlsFormWrapper.innerHTML = "";
-    actionAndControlsFormWrapper.removeAttribute('actionKey');
+    actionAndControlsFormWrapper.removeAttribute("actionKey");
     actionAndControlsForm.style.display = "none";
-};
+}
 
 function saveActionForm() {
     let actionKey = actionAndControlsFormWrapper.getAttribute("actionKey");
     if (!actionKey) {
-        alert('actionKey not found!');
+        alert("actionKey not found!");
         return;
     }
     ACTIONS.get(actionKey).saveActionForm();
     closeActionForm();
-};
+}
 
 document.addEventListener("wheel", (event) => {
     if (!event.ctrlKey) return;
@@ -141,28 +150,28 @@ function resetWorkflowPosition() {
 function toggleActionsAndControls() {
     let toggleActionBtn = document.getElementById("toggleActionsAndControls");
     let actionBox = document.getElementById("actionsAndControlsWrapper");
-    let toggleActionBoxIcon = document.getElementById("toggleActionsAndControlsIcon");
+    let toggleActionBoxIcon = document.getElementById(
+        "toggleActionsAndControlsIcon",
+    );
     let flag = toggleActionBtn.getAttribute("flag");
 
     toggleActionBtn.setAttribute("flag", flag === "true" ? "false" : "true");
     actionBox.style.display = flag === "true" ? "none" : "block";
     toggleActionBoxIcon.innerText = flag === "true" ? "menu" : "close";
     toggleActionBtn.classList.remove(
-        flag === "true" ? "text-danger" : "text-success"
+        flag === "true" ? "text-danger" : "text-success",
     );
     toggleActionBtn.classList.add(
-        flag === "true" ? "text-success" : "text-danger"
+        flag === "true" ? "text-success" : "text-danger",
     );
 }
-
-
 
 async function dfs(root, input) {
     if (!ACTIONS.has(root)) return;
     let action = ACTIONS.get(root);
     const nextActions = await getNextActions(action, input);
     (typeof nextActions !== "undefined" ? nextActions : []).map(
-        async (next) => await dfs(next.edge, next.data)
+        async (next) => await dfs(next.edge, next.data),
     );
     return;
 }
@@ -253,7 +262,7 @@ async function getNextActions(action, input) {
                     return;
                 }
                 context[action.context[key].key] = eval(
-                    action.context[key].value
+                    action.context[key].value,
                 );
             }
             const data = await axios.post("/api/compiler", { code, context });
@@ -413,5 +422,3 @@ function buildWorkflowsWithDFS(curId, parId, flag) {
         buildWorkflowsWithDFS(action.nextBoxId, curId, true);
     }
 }
-
-

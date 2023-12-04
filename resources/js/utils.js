@@ -32,7 +32,7 @@ function notify(msg, status) {
 
 function toggleDebugBtn() {
     let debugBtn = document.getElementById("debug");
-    if(debugBtn) {
+    if (debugBtn) {
         if (!DEBUG_MODE) {
             debugBtn.classList.remove("flex");
             debugBtn.classList.add("hidden");
@@ -44,9 +44,9 @@ function toggleDebugBtn() {
 }
 
 function getAction(actionType) {
-    let action = null, actionId = createId();
-    if(actionType === 'IF_CONDITION') 
-        action =  new IfConditionAction(actionId);
-    ACTIONS.set(actionId, action)
+    let action = null,
+        actionId = createId();
+    if (actionType === "IF_CONDITION") action = new IfConditionAction(actionId);
+    ACTIONS.set(actionId, action);
     return action;
 }

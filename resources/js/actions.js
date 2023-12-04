@@ -269,7 +269,16 @@ class IfConditionAction extends Action {
                 <div>
                     <div class="p-2 flex flex-col">
                         <span class="text-primary mb-2">Data</span>
-                        <textarea class="p-3 text-sm bg-dark border border-gray-500 rounded-md outline-none" rows="12">${this.data && JSON.stringify(this.data).slice(0, Math.min(JSON.stringify(this.data).length, 1000))}...</textarea>
+                        <textarea class="p-3 text-sm bg-dark border border-gray-500 rounded-md outline-none" rows="12">${
+                            this.data &&
+                            JSON.stringify(this.data).slice(
+                                0,
+                                Math.min(
+                                    JSON.stringify(this.data).length,
+                                    1000,
+                                ),
+                            )
+                        }...</textarea>
                     </div>
                 </div>
             </div>
