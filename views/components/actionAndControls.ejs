@@ -1,0 +1,136 @@
+<div id="toggleActionsAndControls" class="fixed right-4 mr-2 mt-2 top-16 bg-dark flex items-center justify-center px-2 text-xs text-danger rounded-full py-[4px] border border-neutral-500 cursor-pointer hover:bg-neutral-700 transition-all z-20" flag="true"
+    onclick="toggleActionsAndControls()">
+    <span id="toggleActionsAndControlsIcon" class="material-symbols-outlined text-sm text-denger">
+        close
+    </span>
+</div>
+
+<div id="actionsAndControlsWrapper" class="fixed right-4 top-16 bg-dark h-[400px] w-[320px] shadow-lg rounded-xl transition-all z-10 border border-boxColor">
+    <div class="px-4">
+        <h1 class="text-gray text-sm tracking-wide font-light mt-8">
+            Flow Controls
+        </h1>
+        <div class="controlsWrapper">
+            <ul class="grid grid-cols-2 mt-4 gap-2">
+                <li class="px-2 text-sm text-gray rounded-md py-[4px] flex items-center border border-neutral-500 cursor-pointer hover:bg-neutral-700 transition-all" draggable="true" ondragstart="dragAction(event)" actionType="IF_CONDITION">
+                    <span class="material-symbols-outlined text-sm mr-2 text-warning">
+                        device_hub
+                    </span>
+                    <span class="tracking-wide text-xs">
+                        IF Condition
+                    </span>
+                </li>
+                <li class="px-2 text-sm text-gray rounded-md py-[4px] flex items-center border border-neutral-500 cursor-pointer hover:bg-neutral-700 transition-all" draggable="true" ondragstart="dragAction(event)" actionType="SWITCH">
+                    <span class="material-symbols-outlined text-sm mr-2 text-warning">
+                        switch
+                    </span>
+                    <span class="tracking-wide text-xs">Switch</span>
+                </li>
+                <li class="px-2 text-sm text-gray rounded-md py-[4px] flex items-center border border-neutral-500 cursor-pointer hover:bg-neutral-700 transition-all" draggable="true" ondragstart="dragAction(event)" actionType="FOR_LOOP">
+                    <span class="material-symbols-outlined text-sm mr-2 text-warning">
+                        laps
+                    </span>
+                    <span class="tracking-wide text-xs">For Loop</span>
+                </li>
+                <li class="px-2 text-sm text-gray rounded-md py-[4px] flex items-center border border-neutral-500 cursor-pointer hover:bg-neutral-700 transition-all" draggable="true" ondragstart="dragAction(event)" actionType="LOOP_DATA">
+                    <span class="material-symbols-outlined text-sm mr-2 text-warning">
+                        repeat
+                    </span>
+                    <span class="tracking-wide text-xs">Loop Data</span>
+                </li>
+                <li class="px-2 text-sm text-gray rounded-md py-[4px] flex items-center border border-neutral-500 cursor-pointer hover:bg-neutral-700 transition-all" draggable="true" ondragstart="dragAction(event)" actionType="VARIABLE">
+                    <span class="material-symbols-outlined text-sm mr-2 text-warning">
+                        pin
+                    </span>
+                    <span class="tracking-wide text-xs">Variable</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <p class="bg-boxColor h-[0.5px] w-[320px] mt-8 mb-2 shadow-2xl shadow-gray/75 rounded-full"></p>
+    <div class="px-4">
+        <h1 class="text-gray text-sm tracking-wide font-light mt-4">
+            Actions
+        </h1>
+        <div class="actionsWrapper">
+            <ul class="grid grid-cols-2 mt-4 gap-2">
+                <li class="px-2 text-sm text-gray rounded-md py-[4px] flex items-center border border-neutral-500 cursor-pointer hover:bg-neutral-700 transition-all" draggable="true" ondragstart="dragAction(event)" actionType="HTTP_REQUEST">
+                    <span class="material-symbols-outlined text-sm mr-2 text-warning">
+                        swap_horiz
+                    </span>
+                    <span class="tracking-wide text-xs">HTTP Request</span>
+                </li>
+                <li class="px-2 text-sm text-gray rounded-md py-[4px] flex items-center border border-neutral-500 cursor-pointer hover:bg-neutral-700 transition-all" draggable="true" ondragstart="dragAction(event)" actionType="NOTIFICATION">
+                    <span class="material-symbols-outlined text-sm mr-2 text-warning">
+                        notifications
+                    </span>
+                    <span class="tracking-wide text-xs">Notification</span>
+                </li>
+                <li class="px-2 text-sm text-gray rounded-md py-[4px] flex items-center border border-neutral-500 cursor-pointer hover:bg-neutral-700 transition-all" draggable="true" ondragstart="dragAction(event)" actionType="CONSOLE_LOG">
+                    <span class="material-symbols-outlined text-sm mr-2 text-warning">
+                        polymer
+                    </span>
+                    <span class="tracking-wide text-xs">Console Log</span>
+                </li>
+                <li class="px-2 text-sm text-gray rounded-md py-[4px] flex items-center border border-neutral-500 cursor-pointer hover:bg-neutral-700 transition-all" draggable="true" ondragstart="dragAction(event)" actionType="CODE_BLOCK">
+                    <span class="material-symbols-outlined text-sm mr-2 text-warning">
+                        function
+                    </span>
+                    <span class="tracking-wide text-xs">Code Block</span>
+                </li>
+                <li class="px-2 text-sm text-gray rounded-md py-[4px] flex items-center border border-neutral-500 cursor-pointer hover:bg-neutral-700 transition-all" draggable="true" ondragstart="dragAction(event)" actionType="WEBHOOK">
+                    <span class="material-symbols-outlined text-sm mr-2 text-warning">
+                        web
+                    </span>
+                    <span class="tracking-wide text-xs">Webhooks</span>
+                </li>
+                <li class="px-2 text-sm text-gray rounded-md py-[4px] flex items-center border border-neutral-500 cursor-pointer hover:bg-neutral-700 transition-all" draggable="true" ondragstart="dragAction(event)" actionType="SendEmail">
+                    <span class="material-symbols-outlined text-sm mr-2 text-warning">
+                        email
+                    </span>
+                    <span class="tracking-wide text-xs">Send Email</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div id="actionAndControlsForm" class="fixed right-4 top-16 origin-top flex-col elevation-medium rounded-lg pb-8 transition-all min-h-[400px] w-[320px] bg-dark shadow-lg z-20 border border-boxColor">
+    <div id="actionAndControlsFormWrapper"></div>
+    <div class="absolute flex items-center justify-between px-4 mt-2 bottom-4 left-0 w-[100%]">
+        <button class="mr-4 btn-secondary" onclick="closeActionForm()">
+            close
+        </button>
+        <button class="btn-primary" onclick="saveActionForm()">
+            Save
+        </button>
+    </div>
+</div>
+
+
+<div class="fixed left-1 bottom-4 left- origin-top flex items-center justify-center flex-row elevation-medium rounded-md transition-all px-2 py-1 bg-dark z-10">
+    <button class="btn flex items-center justify-center flex-row" onclick="resetWorkflowPosition()">
+        <span class="material-symbols-outlined text-[14px] font-bold text-warning flex items-center justify-center">
+            restart_alt
+        </span>
+        <span class="ml-[4px]">RESET</span>
+    </button>
+    <button class="btn flex items-center justify-center flex-row" onclick="runWorkflow()">
+        <span class="material-symbols-outlined text-[14px] font-bold text-warning flex items-center justify-center">
+            code
+        </span>
+        <span class="ml-[4px]">RUN</span>
+    </button>
+    <button class="btn flex items-center justify-center flex-row" onclick="saveWorkflow()">
+        <span class="material-symbols-outlined text-[14px] font-bold text-warning flex items-center justify-center">
+            save
+        </span>
+        <span class="ml-[4px]">SAVE</span>
+    </button>
+    <button class="btn flex items-center justify-center flex-row" id="debugMode" onclick="toggleDebugModal()">
+        <span class="material-symbols-outlined text-[14px] font-bold text-warning flex items-center justify-center">
+            bug_report
+        </span>
+        <span class="ml-[4px]">DEBUG</span>
+    </button>
+</div>
