@@ -50,3 +50,61 @@ function getAction(actionType) {
     ACTIONS.set(actionId, action);
     return action;
 }
+
+async function getNextActions(action, input) {
+    let nextActions = [];
+
+    if (action.actionType === "IF_CONDITION")
+        action.getNextActions(input, nextActions);
+    action.updateActionStatus("SUCCESS");
+    return nextActions;
+}
+
+class HTTPRequest {
+    constructor(action) {
+        this.url = action?.url;
+        this.method = action?.method;
+        this.body = action?.body;
+        this.authentication = action?.authentication;
+        this.headers = action?.headers;
+        this.user = action?.user;
+        this.password = action?.password;
+        this.auth = action?.auth;
+    }
+
+    async #request() {
+        try {
+            const data = await axios({
+                url: this.url,
+                ...(this.body && { body: this.body }),
+                headers: {
+                    ...(this.authentication && {
+                        Authorization: `Bearer ${this.authentication}`,
+                    }),
+                    ...this.headers,
+                },
+                ...(this.auth && {
+                    auth: {
+                        username: this.user,
+                        password: this.password,
+                    },
+                }),
+            });
+            return { ok: true, data: data.data };
+        } catch (error) {
+            console.log("Fetch error:", error);
+            return { ok: false, data: null };
+        }
+    }
+
+    async httpRequest() {
+        return await this.#request();
+    }
+
+    async webhookRequest(url, method, body) {
+        this.url = url;
+        this.method = method;
+        this.body = body;
+        return await this.httpRequest();
+    }
+}

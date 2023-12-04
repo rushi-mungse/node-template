@@ -22,11 +22,10 @@ let WORKFLOW_NAME,
     ROOT,
     CREATED_AT,
     DEBUG_MODE = false,
-    RUN_CODE = true;
+    RUN_CODE = false;
 
 function dragAction(event) {
     currentActionType = event.target.getAttribute("actionType");
-    console.log(currentActionType);
 }
 
 function dropAction(parentEl, wrapperEl) {
@@ -173,154 +172,12 @@ async function dfs(root, input) {
     (typeof nextActions !== "undefined" ? nextActions : []).map(
         async (next) => await dfs(next.edge, next.data),
     );
-    return;
 }
 
-function runWorkflows() {
+function runWorkflow() {
     RUN_CODE = true;
-    for (let [key, value] of ACTIONS) value.updateStatus("WARNING");
-    dfs(ROOT_ACTION.boxId, null);
-}
-
-async function getNextActions(action, input) {
-    let nextActions = [];
-    if (action.id === "HTTP_REQUEST") {
-        const http = new HTTPRequest(action);
-        let { data, ok } = await http.httpRequest();
-        if (!ok) {
-            action.updateStatus("ERROR");
-            notify("Something Went Wrong!", "danger");
-            action.debug = "ERROR ACCURED!";
-            return nextActions;
-        }
-        action.debugData = data;
-        nextActions.push({ edge: action.nextBoxId, data });
-    } else if (action.id === "IF_CONDITION") {
-        if (eval(action.condition))
-            nextActions.push({ edge: action.trueConditionBoxId, data: input });
-        else
-            nextActions.push({ edge: action.falseConditionBoxId, data: input });
-        action.debugData = input;
-        nextActions.push({ edge: action.nextBoxId, data: input });
-    } else if (action.id === "FOR_LOOP") {
-        nextActions.push({ edge: action.rightBoxId, data: input });
-        nextActions.push({ edge: action.nextBoxId, data: input });
-        action.debugData = input;
-    } else if (action.id === "LOOP_DATA") {
-        let data = eval(action.data);
-        if (typeof data === "object") {
-            data.forEach((item) => {
-                nextActions.push({ edge: action.rightBoxId, data: item });
-            });
-        }
-        action.debugData = input;
-        nextActions.push({ edge: action.nextBoxId, data: input });
-    } else if (action.id === "SWITCH") {
-        let cases = action.cases,
-            defaultCase = action.defaultCase;
-        let isCaseValid = false;
-        for (let i = 0; i < cases.length; i++) {
-            if (isCaseValid) break;
-            if (eval(action.conditions[i])) {
-                nextActions.push({ edge: cases[i], data: input });
-                isCaseValid = true;
-            }
-        }
-        action.debugData = input;
-        if (!isCaseValid) nextActions.push({ edge: defaultCase, data: input });
-        nextActions.push({ edge: action.nextBoxId, data: input });
-    } else if (action.id === "VARIABLE") {
-        nextActions.push({ edge: action.nextBoxId, data: input });
-        action.debugData = input;
-    } else if (action.id === "NOTIFICATION") {
-        notify(action.notification, action.type);
-        nextActions.push({ edge: action.nextBoxId, data: input });
-        action.debugData = input;
-    } else if (action.id === "CONSOLE_LOG") {
-        let res = eval(action.consoleLogData);
-        console.log(res);
-        if (typeof res !== "object") {
-            action.updateStatus("ERROR");
-            notify("Something went wrong!", "danger");
-            action.debugData = "ERROR ACCURED!";
-            return nextActions;
-        }
-        console.log(res);
-        action.debugData = input;
-        nextActions.push({ edge: action.nextBoxId, data: input });
-    } else if (action.id === "CODE_BLOCK") {
-        try {
-            let code = action.code;
-            let context = {};
-            for (const key in action.context) {
-                if (
-                    typeof eval(action.context[key].value) === "undefined" ||
-                    !eval(action.context[key].value)
-                ) {
-                    notify("Pass parameter valid!", "danger");
-                    action.debugData = "ERROR ACCURED!";
-                    return;
-                }
-                context[action.context[key].key] = eval(
-                    action.context[key].value,
-                );
-            }
-            const data = await axios.post("/api/compiler", { code, context });
-            // console.log(data.data);
-            action.debugData = data;
-            nextActions.push({ edge: action.nextBoxId, data: data.data });
-        } catch (error) {
-            console.log(error);
-            notify("Something Went Wrong!", "danger");
-            action.debugData = error;
-            return;
-        }
-    } else if (action.id === "WEBHOOK") {
-        let url = action.url;
-        let method = action.method;
-        let body = input;
-        const http = new HTTPRequest(null);
-        let { data, ok } = await http.webhookRequest(url, method, body);
-        if (!ok) {
-            action.updateStatus("ERROR");
-            notify("Something went wrong!", "danger");
-            action.debugData = "ERROR ACCURED!";
-            return nextActions;
-        }
-        action.debugData = data;
-        nextActions.push({ edge: action.nextBoxId, data });
-    } else if (action.id === "SendEmail") {
-        let html = action.html,
-            to = action.to,
-            from = action.from,
-            subject = action.subject;
-
-        try {
-            const { data } = await axios.post("/api/send-email", {
-                html,
-                to,
-                from,
-                subject,
-            });
-
-            if (!data.ok) {
-                action.updateStatus("ERROR");
-                notify("Something went wrong!", "danger");
-                action.debugData = "ERROR ACCURED!";
-                return nextActions;
-            }
-            action.debugData = input;
-            nextActions.push({ edge: action.nextBoxId, data: input });
-        } catch (error) {
-            console.log(error);
-            action.updateStatus("ERROR");
-            notify("Something went wrong!", "danger");
-            action.debugData = "ERROR ACCURED!";
-            return nextActions;
-        }
-    }
-    action.updateStatus("SUCCESS");
-    return nextActions;
+    for (let [_, value] of ACTIONS) value.updateActionStatus("WARNING");
+    dfs(ROOT_ACTION.actionId, null);
 }
 
 async function init() {

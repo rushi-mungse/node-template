@@ -76,9 +76,9 @@ class Action {
         </div>`;
     }
 
-    markupForActionStatus(status) {
-        document.querySelector(`[status="${this.boxId}"]`).innerHTML = `
-        <i class="fa-solid fa-${STATUS[status].icon} text-[14px] font-bold text-${STATUS[status].color} rounded-full p-[1px] bg-neutral-500 flex items-center justify-center"></i>
+    updateActionStatus(status) {
+        document.querySelector(`[status="${this.actionId}"]`).innerHTML = `
+        <i class="fa-solid fa-${STATUS[status].icon} text-[10px] font-bold text-${STATUS[status].color} rounded-full p-[3px] bg-neutral-500 flex items-center justify-center"></i>
     `;
     }
 }
@@ -285,5 +285,14 @@ class IfConditionAction extends Action {
         </div>
     </div>
     `;
+    }
+
+    getNextActions(input, nextActions) {
+        if (eval(this.condition))
+            nextActions.push({ edge: this.trueActionId, data: input });
+        else return nextActions.push({ edge: this.falseActionId, data: input });
+
+        this.data = input;
+        nextActions.push({ edge: this.childActionId, data: input });
     }
 }
