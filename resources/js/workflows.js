@@ -7,7 +7,7 @@ let workflowsForm = document.getElementById("workflowsForm");
 
 // change location for perticular workflows
 function enterIntoWorkflows(workflowsId, data) {
-    location.replace(`/workpace?workflowsId=${workflowsId}`);
+    location.replace(`/workpace?workflowId=${workflowsId}`);
 }
 
 // create table body for workflows list
@@ -105,7 +105,7 @@ async function createNewWorkflows() {
                 .then((docRef) => {
                     closeWorkflowsForm();
                     document.getElementById("workflowsName").value = "";
-                    location.replace(`/workpace?workflowsId=${docRef.id}`);
+                    location.replace(`/workpace?workflowId=${docRef.id}`);
                 })
                 .catch((error) => {
                     console.error("Error adding document: ", error);
