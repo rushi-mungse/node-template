@@ -716,6 +716,11 @@ video {
   margin-bottom: 1.5rem;
 }
 
+.mx-3 {
+  margin-left: 0.75rem;
+  margin-right: 0.75rem;
+}
+
 .-ml-\[120px\] {
   margin-left: -120px;
 }
@@ -1371,6 +1376,11 @@ video {
 .py-\[4px\] {
   padding-top: 4px;
   padding-bottom: 4px;
+}
+
+.py-\[3px\] {
+  padding-top: 3px;
+  padding-bottom: 3px;
 }
 
 .pb-10 {
