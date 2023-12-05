@@ -53,10 +53,7 @@ function getAction(actionType) {
 
 async function getNextActions(action, input) {
     let nextActions = [];
-
-    if (action.actionType === "IF_CONDITION")
-        action.getNextActions(input, nextActions);
-    action.updateActionStatus("SUCCESS");
+    action.getNextActions(input, nextActions);
     return nextActions;
 }
 
@@ -106,5 +103,32 @@ class HTTPRequest {
         this.method = method;
         this.body = body;
         return await this.httpRequest();
+    }
+}
+
+function createInstance(actionObj) {
+    switch (actionObj.actionType) {
+        case "HTTP_REQUEST":
+            return HTTPRequestAction.getIntance(actionObj);
+        case "IF_CONDITION":
+            return IfConditionAction.getIntance(actionObj);
+        case "FOR_LOOP":
+            return ForLoopAction.getIntance(actionObj);
+        case "LOOP_DATA":
+            return LoopDataAction.getIntance(actionObj);
+        case "SWITCH":
+            return SwitchAction.getIntance(actionObj);
+        case "VARIABLE":
+            return VariableAction.getIntance(actionObj);
+        case "NOTIFICATION":
+            return NotificationAction.getIntance(actionObj);
+        case "CONSOLE_LOG":
+            return ConsoleLogAction.getIntance(actionObj);
+        case "CODE_BLOCK":
+            return CodeBlockAction.getIntance(actionObj);
+        case "WEBHOOK":
+            return WebhookAction.getIntance(actionObj);
+        case "SEND_EMAIL":
+            return SendEmailAction.getIntance(actionObj);
     }
 }
