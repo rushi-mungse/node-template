@@ -21,7 +21,7 @@ document.addEventListener("keydown", function (e) {
 
 function toggleDebugModal() {
     DEBUG_MODE = !DEBUG_MODE;
-    if (!RUN_CODE) alert("Please run workflow at least ones!");
+    if (!RUN_CODE) return alert("Please run workflow at least ones!");
 
     let btn = document.getElementById("debugMode");
 
