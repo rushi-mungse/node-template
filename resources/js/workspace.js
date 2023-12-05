@@ -1,12 +1,9 @@
-const headerLinks = document.querySelectorAll("#headerLinks a");
-headerLinks.forEach((link) => link.classList.remove("activeHeaderLink"));
-
 let ACTIONS = new Map();
 let currentActionType = "HTTP_REQUEST";
 let initialMouseX = 0,
     initialMouseY = 0,
     isTransposing = false;
-const ROOT_ACTION = getAction("IF_CONDITION"); // TODO: Change starting action
+let ROOT_ACTION;
 const searchParams = new URLSearchParams(window.location.search);
 const workflowId = searchParams.get("workflowId");
 
@@ -15,7 +12,7 @@ let actionAndControlsForm = document.getElementById("actionAndControlsForm");
 let actionAndControlsFormWrapper = document.getElementById(
     "actionAndControlsFormWrapper",
 );
-workspace.innerHTML = ROOT_ACTION.markupForMainAction();
+// workspace.innerHTML = ROOT_ACTION.markupForMainAction();
 
 let WORKFLOW_NAME,
     UID,
@@ -168,6 +165,7 @@ function toggleActionsAndControls() {
 async function dfs(root, input) {
     if (!ACTIONS.has(root)) return;
     let action = ACTIONS.get(root);
+    console.log(action);
     const nextActions = await getNextActions(action, input);
     (typeof nextActions !== "undefined" ? nextActions : []).map(
         async (next) => await dfs(next.edge, next.data),
@@ -176,6 +174,7 @@ async function dfs(root, input) {
 
 function runWorkflow() {
     RUN_CODE = true;
+    console.log(ACTIONS);
     for (let [_, value] of ACTIONS) value.updateActionStatus("WARNING");
     dfs(ROOT_ACTION.actionId, null);
 }
@@ -189,17 +188,38 @@ async function saveWorkflow() {
         root: ROOT_ACTION.actionId,
     };
 
-    for (let [key, action] of ACTIONS) data[key] = action.getObj(); 
+    for (let [key, action] of ACTIONS) data[key] = action.getObj();
     console.log(data);
 
     try {
-        await db.collection("workflows").doc(workflowsId).delete();
-        await db.collection("workflows").doc(workflowsId).set(data);
+        await db.collection("workflows").doc(workflowId).delete();
+        await db.collection("workflows").doc(workflowId).set(data);
     } catch (error) {
         console.log(error);
         notify("Something Went Wrong!", "danger");
     }
     notify("▶︎ Successfully Saved!", "success");
+}
+
+// delete action and control
+function deleteAction(id) {
+    let key = id.length > 0 ? id[0].getAttribute("id") : id.getAttribute("id");
+    if (id.length > 0) id = id[1];
+
+    let action = ACTIONS.get(key);
+    let parentActionId = action.parentActionId;
+    let childActionId = action.childActionId;
+
+    if (ACTIONS.has(parentActionId) && childActionId) {
+        let parent = ACTIONS.get(parentActionId);
+        parent.childActionId = childActionId;
+    }
+
+    ACTIONS.delete(key);
+    saveWorkflow();
+    notify("➢ Deleted Successfully", "success");
+    id.remove();
+    event.stopPropagation();
 }
 
 async function init() {
@@ -214,12 +234,14 @@ async function init() {
                         WORKFLOW_NAME = doc.data().workflowName;
                         CREATED_AT = doc.data().createdAt;
                         ROOT = doc.data().root;
-                        buildWorkflows(doc.data());
+                        buildWorkflow(doc.data());
                     } else {
                         console.log("No such document!");
+                        notify("No such document found!", "danger");
                     }
                 })
                 .catch((error) => {
+                    notify("Error getting document", "danger");
                     console.log("Error getting document:", error);
                 });
         } else {
@@ -227,56 +249,49 @@ async function init() {
         }
     });
 }
-// init();
 
-function buildWorkflows(data) {
-    document.getElementById("workflowsName").innerText = data.workflowsName;
+function buildWorkflow(data) {
+    document.getElementById("workflowNameWrapper").style.display = "flex";
+    document.getElementById("workflowName").innerText = data.workflowName;
     for (let key in data)
-        if (typeof data[key] === "object" && data[key].hasOwnProperty("id"))
-            ACTIONS.set(data[key].boxId, createActionClass(data[key]));
+        if (
+            typeof data[key] === "object" &&
+            data[key].hasOwnProperty("actionId")
+        )
+            ACTIONS.set(data[key].actionId, createInstance(data[key]));
     ROOT_ACTION = ACTIONS.get(ROOT);
-    TRANSPOSING_ELEMENT.innerHTML += ROOT_ACTION.createActionBox();
-    buildWorkflowsWithDFS(ROOT_ACTION.nextBoxId, ROOT_ACTION.boxId, true);
+    workspace.innerHTML = ROOT_ACTION.markupForMainAction();
+
+    dfsForBuildWorkflow(ROOT_ACTION.trueActionId, ROOT_ACTION.trueWrapperId);
+    dfsForBuildWorkflow(ROOT_ACTION.falseActionId, ROOT_ACTION.falseWrapperId);
+    dfsForBuildWorkflow(ROOT_ACTION.childActionId, ROOT_ACTION.actionId);
 }
 
-function buildWorkflowsWithDFS(curId, parId, flag) {
-    if (!ACTIONS.has(curId)) return;
-    let action = ACTIONS.get(curId);
-    if (flag) {
-        let prevElement = document.getElementById(parId);
-        prevElement?.insertAdjacentHTML("afterend", action.createActionBox());
-    } else {
-        let curElement = document.getElementById(curId);
-        curElement.innerHTML += action.createActionBox();
-    }
+function dfsForBuildWorkflow(curActionId, wrapperActionId) {
+    if (!ACTIONS.has(curActionId)) return;
 
-    if (action.id === "HTTP_REQUEST") {
-        buildWorkflowsWithDFS(action.nextBoxId, curId, true);
-    } else if (action.id === "IF_CONDITION") {
-        buildWorkflowsWithDFS(action.trueConditionBoxId, curId, false);
-        buildWorkflowsWithDFS(action.falseConditionBoxId, curId, false);
-        buildWorkflowsWithDFS(action.nextBoxId, curId, true);
-    } else if (action.id === "FOR_LOOP") {
-        buildWorkflowsWithDFS(action.rightBoxId, curId, false);
-        buildWorkflowsWithDFS(action.nextBoxId, curId, true);
-    } else if (action.id === "LOOP_DATA") {
-        buildWorkflowsWithDFS(action.rightBoxId, curId, false);
-        buildWorkflowsWithDFS(action.nextBoxId, curId, true);
-    } else if (action.id === "SWITCH") {
-        for (let i = 0; i < action.cases.length; i++) {
-            buildWorkflowsWithDFS(action.cases[i], curId, false);
-        }
-        buildWorkflowsWithDFS(action.defaultCase, curId, false);
-        buildWorkflowsWithDFS(action.nextBoxId, curId, true);
-    } else if (action.id === "VARIABLE") {
-        buildWorkflowsWithDFS(action.nextBoxId, curId, true);
-    } else if (action.id === "NOTIFICATION") {
-        buildWorkflowsWithDFS(action.nextBoxId, curId, true);
-    } else if (action.id === "CONSOLE_LOG") {
-        buildWorkflowsWithDFS(action.nextBoxId, curId, true);
-    } else if (action.id === "CODE_BLOCK") {
-        buildWorkflowsWithDFS(action.nextBoxId, curId, true);
-    } else if (action.id === "WEBHOOK") {
-        buildWorkflowsWithDFS(action.nextBoxId, curId, true);
+    let action = ACTIONS.get(curActionId);
+    let wrapperEl = document.getElementById(wrapperActionId);
+    wrapperEl.insertAdjacentHTML("afterend", action.markupForMainAction());
+
+    if (action.id === "IF_CONDITION") {
+        dfsForBuildWorkflow(action.trueActionId, action.trueWrapperId);
+        dfsForBuildWorkflow(action.falseActionId, action.falseWrapperId);
+    } else if (action.id === "FOR_LOOP")
+        dfsForBuildWorkflow(
+            action.rightSideActionId,
+            action.rightSideWrapperId,
+        );
+    else if (action.id === "LOOP_DATA")
+        dfsForBuildWorkflow(
+            action.rightSideActionId,
+            action.rightSideWrapperId,
+        );
+    else if (action.id === "SWITCH") {
+        for (let i = 0; i < action.cases.length; i++)
+            dfsForBuildWorkflow(action.cases[i], action.caseWrapperIds[i]);
+        dfsForBuildWorkflow(action.defaultCase, action.defaultCaseWrapperId);
     }
 }
+
+init();
