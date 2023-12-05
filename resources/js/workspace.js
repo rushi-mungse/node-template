@@ -180,6 +180,28 @@ function runWorkflow() {
     dfs(ROOT_ACTION.actionId, null);
 }
 
+async function saveWorkflow() {
+    let data = {
+        uid: UID,
+        workflowName: WORKFLOW_NAME,
+        createdAt: CREATED_AT,
+        updatedAt: firebase.firestore.Timestamp.fromDate(new Date()),
+        root: ROOT_ACTION.actionId,
+    };
+
+    for (let [key, action] of ACTIONS) data[key] = action.getObj(); 
+    console.log(data);
+
+    try {
+        await db.collection("workflows").doc(workflowsId).delete();
+        await db.collection("workflows").doc(workflowsId).set(data);
+    } catch (error) {
+        console.log(error);
+        notify("Something Went Wrong!", "danger");
+    }
+    notify("▶︎ Successfully Saved!", "success");
+}
+
 async function init() {
     await firebase.auth().onAuthStateChanged((user) => {
         if (user) {
@@ -189,7 +211,7 @@ async function init() {
                 .then((doc) => {
                     if (doc.exists) {
                         UID = doc.data().uid;
-                        WORKFLOW_NAME = doc.data().workflowsName;
+                        WORKFLOW_NAME = doc.data().workflowName;
                         CREATED_AT = doc.data().createdAt;
                         ROOT = doc.data().root;
                         buildWorkflows(doc.data());
@@ -206,27 +228,6 @@ async function init() {
     });
 }
 // init();
-
-// save workflows
-async function saveWorkflow() {
-    let data = {
-        uid: UID,
-        workflowsName: WORKFLOW_NAME,
-        createdAt: CREATED_AT,
-        updatedAt: firebase.firestore.Timestamp.fromDate(new Date()),
-        root: ROOT_ACTION.actionId,
-    };
-
-    for (let [key, value] of ACTIONS) data[key] = getObj(value);
-    console.log(data);
-    try {
-        await db.collection("workflows").doc(workflowsId).delete();
-        await db.collection("workflows").doc(workflowsId).set(data);
-    } catch (error) {
-        notify("Something Went Wrong!", "danger");
-    }
-    notify("▶︎ Successfully Saved!", "success");
-}
 
 function buildWorkflows(data) {
     document.getElementById("workflowsName").innerText = data.workflowsName;
