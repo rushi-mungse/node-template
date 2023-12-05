@@ -56,7 +56,7 @@ class Action {
     `;
     }
 
-    markupForDropBtn(curActionId = null) {
+    markupForDropBtn(curActionId) {
         return `
         <div class="relative flex self-center h-[26px] cursor-pointer z-10 items-center justify-center">
             <div class="relative select-none flex items-center justify-center border border-neutral-500 h-[26px]">
@@ -105,16 +105,19 @@ class IfConditionAction extends Action {
         this.trueActionId = trueActionId;
         this.falseActionId = falseActionId;
         this.condition = null;
+        this.trueWrapperId = createId();
+        this.falseWrapperId = createId();
     }
 
     #leftWrapperBox() {
-        let trueActionWrapperId = createId();
         return `
             <div class="wrapper">
-                <div class="flex flex-col group min-w-[295px]" id="${trueActionWrapperId}" which-link="trueAction">
+                <div class="flex flex-col group min-w-[295px]" id="${
+                    this.trueWrapperId
+                }" which-link="trueAction">
                     <div class="flex relative justify-center self-end items-start w-[50%] min-h-[30px] border-solid border-t-2 border-l-2 border-neutral-500 rounded-tl-lg cursor-pointer">
                         <div class="absolute -left-0.5 top-2/4"> 
-                            ${this.markupForDropBtn(trueActionWrapperId)} 
+                            ${this.markupForDropBtn(this.trueWrapperId)} 
                         </div>
                     </div>
                 </div>
@@ -124,13 +127,14 @@ class IfConditionAction extends Action {
     }
 
     #rightWrapperBox() {
-        let falseActionWrapperId = createId();
         return `
         <div class="wrapper">
-            <div class="flex flex-col group min-w-[295px]" id="${falseActionWrapperId}" which-link="falseAction">
+            <div class="flex flex-col group min-w-[295px]" id="${
+                this.falseWrapperId
+            }" which-link="falseAction">
                 <div class="flex relative justify-center self-start items-start w-[50%] min-h-[30px] border-solid border-t-2 border-r-2 border-neutral-500 rounded-tr-lg cursor-pointer">
                     <div class="absolute -right-0.5 top-2/4"> 
-                        ${this.markupForDropBtn(falseActionWrapperId)} 
+                        ${this.markupForDropBtn(this.falseWrapperId)} 
                     </div>
                 </div>
             </div>
@@ -220,6 +224,8 @@ class IfConditionAction extends Action {
         instance.trueActionId = action.trueActionId;
         instance.falseActionId = action.falseActionId;
         instance.condition = action.condition;
+        instance.trueWrapperId = action.trueWrapperId;
+        instance.falseWrapperId = action.falseWrapperId;
         return instance;
     }
 
@@ -236,6 +242,8 @@ class IfConditionAction extends Action {
             trueActionId: this.trueActionId,
             falseActionId: this.falseActionId,
             condition: this.condition,
+            trueWrapperId: this.trueWrapperId,
+            falseWrapperId: this.falseWrapperId,
         };
     }
 
@@ -288,11 +296,20 @@ class IfConditionAction extends Action {
     }
 
     getNextActions(input, nextActions) {
-        if (eval(this.condition))
-            nextActions.push({ edge: this.trueActionId, data: input });
-        else return nextActions.push({ edge: this.falseActionId, data: input });
+        try {
+            if (eval(this.condition))
+                nextActions.push({ edge: this.trueActionId, data: input });
+            else nextActions.push({ edge: this.falseActionId, data: input });
+        } catch (error) {
+            console.log(error);
+            this.data = error.message;
+            this.updateActionStatus("ERROR");
+            return;
+        }
 
         this.data = input;
         nextActions.push({ edge: this.childActionId, data: input });
+
+        this.updateActionStatus("SUCCESS");
     }
 }
