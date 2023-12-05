@@ -223,19 +223,19 @@ class IfConditionAction extends Action {
         return instance;
     }
 
-    static getObj(action) {
+    getObj() {
         return {
-            actionId: action.actionId,
-            actionText: action.actionText,
-            actionName: action.actionName,
-            actionType: action.actionType,
-            parentActionId: action.parentActionId,
-            childActionId: action.childActionId,
-            data: action.data,
-            icon: action.icon,
-            trueActionId: action.trueActionId,
-            falseActionId: action.falseActionId,
-            condition: action.condition,
+            actionId: this.actionId,
+            actionText: this.actionText,
+            actionName: this.actionName,
+            actionType: this.actionType,
+            parentActionId: this.parentActionId,
+            childActionId: this.childActionId,
+            data: this.data,
+            icon: this.icon,
+            trueActionId: this.trueActionId,
+            falseActionId: this.falseActionId,
+            condition: this.condition,
         };
     }
 
