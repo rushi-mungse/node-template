@@ -19,13 +19,12 @@ document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") closeDebugWorkflowModal();
 });
 
-
 function toggleDebugModal() {
     DEBUG_MODE = !DEBUG_MODE;
-    if (!RUN_CODE) alert('Please run workflow at least ones!')
+    if (!RUN_CODE) return alert("Please run workflow at least ones!");
 
     let btn = document.getElementById("debugMode");
-    
+
     if (DEBUG_MODE) btn.style.background = "green";
     else btn.style.background = "transparent";
 

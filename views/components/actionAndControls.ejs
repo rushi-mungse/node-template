@@ -108,29 +108,46 @@
 </div>
 
 
-<div class="fixed left-1 bottom-4 left- origin-top flex items-center justify-center flex-row elevation-medium rounded-md transition-all px-2 py-1 bg-dark z-10">
-    <button class="btn flex items-center justify-center flex-row" onclick="resetWorkflowPosition()">
-        <span class="material-symbols-outlined text-[14px] font-bold text-warning flex items-center justify-center">
-            restart_alt
-        </span>
-        <span class="ml-[4px]">RESET</span>
-    </button>
-    <button class="btn flex items-center justify-center flex-row" onclick="runWorkflow()">
-        <span class="material-symbols-outlined text-[14px] font-bold text-warning flex items-center justify-center">
-            code
-        </span>
-        <span class="ml-[4px]">RUN</span>
-    </button>
-    <button class="btn flex items-center justify-center flex-row" onclick="saveWorkflow()">
-        <span class="material-symbols-outlined text-[14px] font-bold text-warning flex items-center justify-center">
-            save
-        </span>
-        <span class="ml-[4px]">SAVE</span>
-    </button>
-    <button class="btn flex items-center justify-center flex-row" id="debugMode" onclick="toggleDebugModal()">
-        <span class="material-symbols-outlined text-[14px] font-bold text-warning flex items-center justify-center">
-            bug_report
-        </span>
-        <span class="ml-[4px]">DEBUG</span>
-    </button>
+<div class="fixed left-1 bottom-4 origin-top  z-10 w-screen">
+    <div class="flex items-center justify-between flex-row container mx-auto">
+        <div class="flex items-center justify-center flex-row elevation-medium ounded-md transition-all px-2 py-1 bg-dark shadow-sm shadow-gray/20 rounded-full">
+            <button class="btn flex items-center justify-center flex-row" onclick="resetWorkflowPosition()">
+                <span class="material-symbols-outlined text-[14px] font-bold text-warning flex items-center justify-center">
+                    restart_alt
+                </span>
+                <span class="ml-[4px]">RESET</span>
+            </button>
+            <button class="btn flex items-center justify-center flex-row" onclick="runWorkflow()">
+                <span class="material-symbols-outlined text-[14px] font-bold text-warning flex items-center justify-center">
+                    slideshow
+                </span>
+                <span class="ml-[4px]">RUN</span>
+            </button>
+            <button class="btn flex items-center justify-center flex-row" onclick="saveWorkflow()">
+                <span class="material-symbols-outlined text-[14px] font-bold text-warning flex items-center justify-center">
+                    save
+                </span>
+                <span class="ml-[4px]">SAVE</span>
+            </button>
+            <button class="btn flex items-center justify-center flex-row" id="debugMode" onclick="toggleDebugModal()">
+                <span class="material-symbols-outlined text-[14px] font-bold text-warning flex items-center justify-center">
+                    bug_report
+                </span>
+                <span class="ml-[4px]">DEBUG</span>
+            </button>
+        </div>
+        <div class="flex items-center justify-center">
+            <div id="workflowNameWrapper" href="/workflows" class="text-gray text-sm flex items-center justify-center bg-boxColor px-3 py-1 rounded-md">
+                <span class="text-warning">Workflow Name : </span>
+                <span id="workflowName" class="inline-block mx-3">Workflows Name</span>
+                <i class="fa-solid fa-edit hover:text-primary transition-all cursor-pointer"></i>
+            </div>
+            <button class="btn flex items-center justify-center flex-row ml-8 bg-dark shadow-md shadow-gray/20 rounded-full" id="debugMode" onclick="openWorkflowCodeModal()">
+                <span class="material-symbols-outlined text-[14px] font-bold text-warning flex items-center justify-center">
+                    code
+                </span>
+                <span class="ml-[4px]">CODE</span>
+            </button>
+        </div>
+    </div>
 </div>

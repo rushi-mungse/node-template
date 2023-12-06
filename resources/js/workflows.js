@@ -19,7 +19,7 @@ function createTableBody(workflowsId, data, type) {
 
     let td1 = document.createElement("td");
     td1.classList = "px-6 py-4 whitespace-nowrap text-sm";
-    td1.innerText = data.workflowsName;
+    td1.innerText = data.workflowName;
 
     let td2 = document.createElement("td");
     td2.classList = "px-6 py-4 whitespace-nowrap text-sm";
@@ -94,12 +94,12 @@ async function createNewWorkflows() {
         if (user) {
             let rootId = createId();
             let body = {
-                workflowsName: value,
+                workflowName: value,
                 uid: user.uid,
                 root: rootId,
                 createdAt: firebase.firestore.Timestamp.fromDate(new Date()),
             };
-            body[rootId] = hTTPRequestObj(new HTTPRequestAction(rootId));
+            body[rootId] = new IfConditionAction(rootId).getObj();
             db.collection("workflows")
                 .add(body)
                 .then((docRef) => {
