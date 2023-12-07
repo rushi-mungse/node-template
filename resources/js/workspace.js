@@ -12,7 +12,9 @@ let actionAndControlsForm = document.getElementById("actionAndControlsForm");
 let actionAndControlsFormWrapper = document.getElementById(
     "actionAndControlsFormWrapper",
 );
-// workspace.innerHTML = ROOT_ACTION.markupForMainAction();
+ROOT_ACTION = new SwitchAction(createId());
+ACTIONS.set(ROOT_ACTION.actionId, ROOT_ACTION);
+workspace.innerHTML = ROOT_ACTION.markupForMainAction();
 
 let WORKFLOW_NAME,
     UID,
@@ -294,4 +296,4 @@ function dfsForBuildWorkflow(curActionId, wrapperActionId) {
     }
 }
 
-init();
+// init();

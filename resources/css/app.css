@@ -20,11 +20,6 @@
 .inputBoxSecondary {
     position: relative;
     width: 100%;
-    margin-bottom: 40px;
-}
-
-.inputBoxSecondary {
-    margin-bottom: 20px;
 }
 
 .inputBox input,
@@ -230,4 +225,6 @@
     display: none;
 }
 
-
+.CodeMirror {
+    height: 500px;
+}

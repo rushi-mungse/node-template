@@ -1,0 +1,22 @@
+{
+    "uid": "80utZIDD6PdV2r53sPgY9WuIcLh1",
+    "workflowName": "Workflow",
+    "createdAt": { "seconds": 1701762047, "nanoseconds": 784000000 },
+    "updatedAt": { "seconds": 1701954200, "nanoseconds": 880000000 },
+    "root": "VvSuUPxq",
+    "VvSuUPxq": {
+        "actionId": "VvSuUPxq",
+        "actionText": "If condition",
+        "actionName": "New If Condition Action",
+        "actionType": "IF_CONDITION",
+        "parentActionId": null,
+        "childActionId": null,
+        "data": null,
+        "icon": "network-wired",
+        "trueActionId": "TMsYEwAe",
+        "falseActionId": "VwawnTPl",
+        "condition": null,
+        "trueWrapperId": "IGVVXAVQ",
+        "falseWrapperId": "ZEcQCLxB"
+    }
+}

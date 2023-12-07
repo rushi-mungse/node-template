@@ -68,7 +68,7 @@ class Action {
 
     markupForInputBox(name, value, label, text = "Enter Value", type = "text") {
         return `
-        <div class="inputBox">
+        <div class="inputBox mb-6">
             <input class="placeholder-gray placeholder-opacity-30" name="${name}" type="${type}" id="${name}" required ${
                 value && `value="${value}"`
             } placeholder="${text}"/>
@@ -84,13 +84,7 @@ class Action {
 }
 
 class IfConditionAction extends Action {
-    constructor(
-        actionId,
-        parentActionId = null,
-        childActionId = null,
-        trueActionId = null,
-        falseActionId = null,
-    ) {
+    constructor(actionId, parentActionId = null, childActionId = null) {
         super(
             actionId,
             "If condition",
@@ -102,8 +96,8 @@ class IfConditionAction extends Action {
             "network-wired",
         );
 
-        this.trueActionId = trueActionId;
-        this.falseActionId = falseActionId;
+        this.trueActionId = null;
+        this.falseActionId = null;
         this.condition = null;
         this.trueWrapperId = createId();
         this.falseWrapperId = createId();
@@ -255,7 +249,7 @@ class IfConditionAction extends Action {
                 <div class="border-b border-gray-500 grid grid-cols-2 items-center justify-center">
                     <div class="p-4 border-r border-gray-500 flex flex-col">
                         <span class="text-primary">Action Name </span>
-                        <span class="text-sm">IF CONDITION</span>
+                        <span class="text-sm">${this.actionName}</span>
                     </div>
                     <div class="p-4 flex flex-col">
                         <span class="text-primary">Condition </span>
@@ -312,4 +306,405 @@ class IfConditionAction extends Action {
 
         this.updateActionStatus("SUCCESS");
     }
+}
+
+class SwitchAction extends Action {
+    constructor(actionId, parentActionId = null, childActionId = null) {
+        super(
+            actionId,
+            "Switch Action",
+            "New Switch Action",
+            "SWITCH",
+            parentActionId,
+            childActionId,
+            null,
+            "toggle-off",
+        );
+
+        this.conditions = {};
+
+        this.leftActionId = null;
+        this.leftWrapperId = createId();
+        this.leftCondition = null;
+
+        this.rightActionId = null;
+        this.rightWrapperId = createId();
+        this.rightCondition = null;
+
+        this.defaultWrapperId = createId();
+        this.defaultActionId = null;
+        this.defaultCondition = null;
+    }
+
+    #leftWrapperBox() {
+        return `
+        <div class="wrapper">
+            <div class="flex flex-col group min-w-[295px]" id="${
+                this.leftWrapperId
+            }" which-link="leftAction">
+                <div class="flex relative justify-center items-start min-h-[30px] border-t-2 border-neutral-500 w-[calc(50%+1px)] border-l-2 rounded-tl-lg self-end">
+                    <div class="absolute self-center py-1 px-2 -mt-[30px] text-[10px] tracking-wide font-light text-pure bg-neutral-600 rounded" id="write${
+                        this.leftWrapperId
+                    }"> 
+                        ${this.leftCondition} 
+                    </div>
+                    <div class="absolute top-2/4 cursor-pointer left-0">
+                        ${this.markupForDropBtn(this.leftWrapperId)} 
+                    </div>
+                </div>
+            </div>
+            <div class="relative flex grow self-center min-h-[0px] border-solid border-l-2 border-neutral-500"></div>
+            <div class="flex relative justify-center items-start min-h-[10px] border-neutral-500 w-[calc(50%+1px)] self-end border-b-2 border-l-2 rounded-bl-lg"></div>
+        </div>`;
+    }
+
+    #defaultWrapperBox() {
+        return `
+        <div class="wrapper">
+            <div class="flex flex-col group min-w-[295px]" id="${
+                this.defaultWrapperId
+            }" which-link="defaultAction">
+                <div class="flex relative justify-center items-start min-h-[30px] w-[calc(50%+1px)] border-r-2 rounded-tr-lg self-start border-solid border-t-2 border-neutral-500">
+                    <div class="absolute self-center py-1 px-2 -mt-[30px] text-[10px] tracking-wide font-light text-pure bg-neutral-600 rounded"> Default </div>
+                    <div class="absolute top-2/4 right-0 cursor-pointer">
+                        ${this.markupForDropBtn(this.defaultWrapperId)} 
+                    </div>
+                </div>
+            </div>
+            <div class="relative flex grow self-center min-h-[0px] border-solid border-x border-neutral-500"></div>
+            <div class="flex relative justify-center items-start min-h-[10px] w-[calc(50%+1px)] self-start border-r-2 rounded-br-lg border-solid border-b-2 border-neutral-500"></div>
+        </div>
+    `;
+    }
+
+    #middleWrapperBox(wrapperId, condition) {
+        return `
+            <div class="wrapper" id="wrapper${wrapperId}">
+                <div class="flex flex-col group min-w-[295px]" id="${wrapperId}" which-link="middleAction">
+                    <div class="flex relative justify-center items-start min-h-[30px] border-t-2 border-neutral-500 w-full self-center after:contents-[ ] after:absolute after:min-h-[30px] after:border-l-2 after:border-neutral-500 after:-z-10">
+                        <div class="absolute self-center py-1 px-2 -mt-[30px] text-[10px] tracking-wide font-light text-pure bg-neutral-600 rounded" id="write${wrapperId}"> 
+                            ${condition}
+                        </div>
+                        <div class="absolute top-2/4 cursor-pointer inset-x-1/2">
+                            ${this.markupForDropBtn(wrapperId)} 
+                        </div>
+                    </div>
+                </div>
+                <div class="relative flex grow self-center min-h-[0px] border-solid border-l-2 border-neutral-500"></div>
+                <div class="flex relative justify-center items-start min-h-[10px] border-b-2 border-neutral-500 w-full self-center after:content-[ ] after:absolute after:min-h-[10px] after:border-l-2 after:border-neutral-500 after:-z-10"></div>
+            </div>
+        `;
+    }
+
+    #middleWrapperBoxes() {
+        let markup = this.#middleWrapperBox(
+            this.rightWrapperId,
+            this.rightCondition,
+        );
+        for (let key in this.conditions) {
+            markup += this.#middleWrapperBox(
+                this.conditions[key].wrapperId,
+                this.conditions[key].condition,
+            );
+        }
+        return markup;
+    }
+
+    markupForMainAction() {
+        return `
+        <div id="${this.actionId}">
+            <div>
+                <div class="flex flex-col justify-start flex-nowrap group">
+                    <div class="flex relative self-center flex-col items-center">
+                        <div>${this.markupForMainWrapper()}</div>
+                    </div>
+                    <div class="relative flex self-center min-h-[26px] border-solid border-l-2 border-neutral-500"></div>
+                </div>
+                <div class="flex justify-center items-stretch min-h-[140px]">
+                    ${this.#leftWrapperBox()}
+                    ${this.#middleWrapperBoxes()}
+                    ${this.#defaultWrapperBox()}
+                </div>
+                ${this.markupForDropBtn(null)}
+            </div>
+        </div>
+    `;
+    }
+
+    #markupForMiddleInputBox(
+        name,
+        value,
+        label,
+        text = "Enter Case Condition",
+        type = "text",
+    ) {
+        return `
+            <div class="flex items-center justify-center gap-2 mx-4 w-[290px]" actionId="${
+                this.actionId
+            }" id="${name}">
+                <div class="inputBox mb-6">
+                    <input class="placeholder-gray placeholder-opacity-30" type="${type}" id="caseId${name}" required ${
+                        value && `value="${value}"`
+                    } placeholder="${text}"/>
+                    <label for="${name}">Case ${label}</label>
+                </div>
+                <button class="btn border border-gray/30 flex items-center justify-center p-1 mb-6" onclick="deleteSwitchCase(${name})">
+                    <span class="text-[20px] text-danger material-symbols-outlined">delete</span>
+                </button>
+            </div>`;
+    }
+
+    addSwitchCase() {
+        let lastWrapperId = this.rightWrapperId;
+        for (let key in this.conditions)
+            lastWrapperId = this.conditions[key].wrapperId;
+
+        let form = document.getElementById("switchCases");
+        let wrapper = document.getElementById(`wrapper${lastWrapperId}`);
+
+        let caseId = createId();
+        this.conditions[caseId] = {
+            wrapperId: createId(),
+            condition: null,
+        };
+
+        let markup = this.#markupForMiddleInputBox(
+            caseId,
+            null,
+            Object.keys(this.conditions).length + 2,
+        );
+        form.insertAdjacentHTML("afterend", markup);
+
+        let wrapperMarkup = this.#middleWrapperBox(
+            this.conditions[caseId].wrapperId,
+            null,
+        );
+        wrapper.insertAdjacentHTML("afterend", wrapperMarkup);
+    }
+
+    #markupForCases() {
+        let markup = "",
+            cnt = 3;
+        for (let key in this.conditions) {
+            markup += this.#markupForMiddleInputBox(
+                key,
+                this.conditions[key].condition,
+                cnt++,
+            );
+        }
+        return markup;
+    }
+
+    deleteSwitchCase(caseId) {
+        const curCase = this.conditions[caseId];
+        delete this.conditions[caseId];
+        document.getElementById(`wrapper${curCase.wrapperId}`).remove();
+        document.getElementById(caseId).remove();
+    }
+
+    createActionForm() {
+        return `
+        <div id="formWrapper"> 
+            <h1 class="border-b border-neutral-500 flex items-center justify-center text-primary py-4">
+                ${this.actionText}
+            </h1>
+            <form class="flex items-center p-4 mt-8 flex-col" id="switchCases">
+                ${this.markupForInputBox(
+                    "actionName",
+                    this.actionName,
+                    "Action Name",
+                    "Enter Action Name",
+                )}
+                ${this.markupForInputBox(
+                    "leftCondition",
+                    this.leftCondition,
+                    "Case 1",
+                    "Enter Case Conditon",
+                )}
+                ${this.markupForInputBox(
+                    "rightCondition",
+                    this.rightCondition,
+                    "Case 2",
+                    "Enter Case Conditon",
+                )}
+                ${this.#markupForCases()}
+            </form>
+
+            <div class="flex items-center justify-between w-full mb-8">
+                <button class="btn border-[.5px] border-gray bg-neutral-800 flex items-center justify-center ml-4" onclick="addSwitchCase(${
+                    this.actionId
+                })"> 
+                    <span> Add Cases </span>
+                    <span class="ml-1 text-[12px] text-pure material-symbols-outlined">add_circle</span>
+                </button>
+                
+                <button
+                    id="debug"
+                    class="btn border-[.5px] border-gray bg-neutral-800 flex items-center justify-center mr-4"
+                    onclick="debugWorkflow(${this.actionId})"
+                >
+                    <span> Debug </span>
+                    <span class="ml-1 text-[10px] text-pure material-symbols-outlined">
+                        bug_report
+                    </span>
+                </button>
+            </div>
+        </div>
+    `;
+    }
+
+    saveActionForm() {
+        let actionName = document.getElementById("actionName").value;
+        let leftCondition = document.getElementById("leftCondition").value;
+        let rightCondition = document.getElementById("rightCondition").value;
+
+        this.actionName = actionName === "" ? this.actionName : actionName;
+        this.leftCondition =
+            leftCondition === "" ? this.leftCondition : leftCondition;
+        this.rightCondition =
+            rightCondition === "" ? this.rightCondition : rightCondition;
+
+        for (let key in this.conditions) {
+            let value = document.getElementById(`caseId${key}`).value;
+            this.conditions[key].condition =
+                value === "" ? this.conditions[key].condition : value;
+        }
+
+        document.querySelector(`[actionName="${this.actionId}"]`).innerHTML =
+            this.actionName;
+        document.getElementById(`write${this.leftWrapperId}`).innerHTML =
+            leftCondition;
+        document.getElementById(`write${this.rightWrapperId}`).innerHTML =
+            rightCondition;
+
+        for (let key in this.conditions)
+            document.getElementById(
+                `write${this.conditions[key].wrapperId}`,
+            ).innerHTML = this.conditions[key].condition;
+    }
+
+    static getIntance(action) {
+        let instance = new IfConditionAction(null);
+        instance.actionId = action.actionId;
+        instance.actionText = action.actionText;
+        instance.actionName = action.actionName;
+        instance.actionType = action.actionType;
+        instance.parentActionId = action.parentActionId;
+        instance.childActionId = action.childActionId;
+        instance.data = action.data;
+        instance.icon = action.icon;
+        instance.conditions = action.conditions;
+        instance.leftActionId = action.leftActionId;
+        instance.leftWrapperId = action.leftWrapperId;
+        instance.leftCondition = action.leftCondition;
+        instance.rightActionId = action.rightActionId;
+        instance.rightWrapperId = action.rightWrapperId;
+        instance.rightCondition = action.rightCondition;
+        instance.defaultWrapperId = action.defaultWrapperId;
+        instance.defaultActionId = action.defaultActionId;
+        instance.defaultCondition = action.defaultCondition;
+        return instance;
+    }
+
+    getObj() {
+        return {
+            actionId: this.actionId,
+            actionText: this.actionText,
+            actionName: this.actionName,
+            actionType: this.actionType,
+            parentActionId: this.parentActionId,
+            childActionId: this.childActionId,
+            data: this.data,
+            icon: this.icon,
+            conditions: this.conditions,
+            leftActionId: this.leftActionId,
+            leftWrapperId: this.leftWrapperId,
+            leftCondition: this.leftCondition,
+            rightActionId: this.rightActionId,
+            rightWrapperId: this.rightWrapperId,
+            rightCondition: this.rightCondition,
+            defaultWrapperId: this.defaultWrapperId,
+            defaultActionId: this.defaultActionId,
+            defaultCondition: this.defaultCondition,
+        };
+    }
+
+    markupForDebugWorkflow() {
+        return `
+        <div class="w-[650px]">
+        <div class="flex items-center justify-center flex-col container text-pure">
+            <div class="p-4 border border-gray-500 w-[100%] h-[500px] rounded-md">
+                <div class="border-b border-gray-500 grid grid-cols-2 items-center justify-center">
+                    <div class="p-4 border-r border-gray-500 flex flex-col">
+                        <span class="text-primary">Action Name </span>
+                        <span class="text-sm">${this.actionName}</span>
+                    </div>
+                    <div class="p-4 flex flex-col">
+                        <span class="text-primary">Condition </span>
+                        <span class="text-sm">
+                            ${this.condition && this.condition}
+                        </span>
+                    </div>
+                </div>
+                <div class="border-b border-gray-500 grid grid-cols-2 items-center justify-center">
+                    <div class="p-4 border-r border-gray-500 flex flex-col">
+                        <span class="text-primary">True Condition Box Id</span>
+                        <span class="text-sm">${this.trueActionId}</span>
+                    </div>
+                    <div class="p-4 flex flex-col">
+                        <span class="text-primary">False Condition Box Id </span>
+                        <span class="text-sm">${this.falseActionId}</span>
+                    </div>
+                </div>
+                <div>
+                    <div class="p-2 flex flex-col">
+                        <span class="text-primary mb-2">Data</span>
+                        <textarea class="p-3 text-sm bg-dark border border-gray-500 rounded-md outline-none" rows="12">${
+                            this.data &&
+                            JSON.stringify(this.data).slice(
+                                0,
+                                Math.min(
+                                    JSON.stringify(this.data).length,
+                                    1000,
+                                ),
+                            )
+                        }...</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    `;
+    }
+
+    getNextActions(input, nextActions) {
+        try {
+            if (eval(this.condition))
+                nextActions.push({ edge: this.trueActionId, data: input });
+            else nextActions.push({ edge: this.falseActionId, data: input });
+        } catch (error) {
+            console.log(error);
+            this.data = error.message;
+            this.updateActionStatus("ERROR");
+            return;
+        }
+
+        this.data = input;
+        nextActions.push({ edge: this.childActionId, data: input });
+
+        this.updateActionStatus("SUCCESS");
+    }
+}
+
+function addSwitchCase(actionId) {
+    let key = actionId.getAttribute("id");
+    let action = ACTIONS.get(key);
+    action.addSwitchCase();
+}
+
+function deleteSwitchCase(caseId) {
+    let key = caseId.getAttribute("actionId");
+    let caseKey = caseId.getAttribute("id");
+    let action = ACTIONS.get(key);
+    action.deleteSwitchCase(caseKey);
 }
