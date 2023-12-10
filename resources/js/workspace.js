@@ -12,9 +12,10 @@ let actionAndControlsForm = document.getElementById("actionAndControlsForm");
 let actionAndControlsFormWrapper = document.getElementById(
     "actionAndControlsFormWrapper",
 );
-ROOT_ACTION = new SwitchAction(createId());
-ACTIONS.set(ROOT_ACTION.actionId, ROOT_ACTION);
-workspace.innerHTML = ROOT_ACTION.markupForMainAction();
+
+// ROOT_ACTION = new IfConditionAction(createId());
+// ACTIONS.set(ROOT_ACTION.actionId, ROOT_ACTION);
+// workspace.innerHTML = ROOT_ACTION.markupForMainAction();
 
 let WORKFLOW_NAME,
     UID,
@@ -43,19 +44,17 @@ function dropAction(parentEl, wrapperEl) {
         parentEl.insertAdjacentHTML("afterend", markup);
     } else {
         let whichLink = wrapperEl.getAttribute("which-link");
-        if (whichLink === "case") {
-        } else if (whichLink === "trueAction") {
-            parentChildId = parentAction.trueActionId;
-            parentAction.trueActionId = curAction.actionId;
+        if (whichLink === "middleAction") {
+            let caseId = wrapperEl.getAttribute("id");
+            parentChildId = parentAction.conditions[caseId].childActionId;
+            parentAction.conditions[caseId].childActionId = curAction.actionId;
             curAction.parentActionId = parentId;
             curAction.childActionId = parentChildId;
-        } else if (whichLink === "falseAction") {
-            parentChildId = parentAction.falseActionId;
-            parentAction.falseActionId = curAction.actionId;
+        } else {
+            parentChildId = parentAction[whichLink];
+            parentAction[whichLink] = curAction.actionId;
             curAction.parentActionId = parentId;
             curAction.childActionId = parentChildId;
-        } else if (whichLink === "rightBoxId") {
-        } else if (whichLink === "defaultCase") {
         }
         wrapperEl.innerHTML += markup;
     }
@@ -176,7 +175,6 @@ async function dfs(root, input) {
 
 function runWorkflow() {
     RUN_CODE = true;
-    console.log(ACTIONS);
     for (let [_, value] of ACTIONS) value.updateActionStatus("WARNING");
     dfs(ROOT_ACTION.actionId, null);
 }
@@ -296,4 +294,4 @@ function dfsForBuildWorkflow(curActionId, wrapperActionId) {
     }
 }
 
-// init();
+init();

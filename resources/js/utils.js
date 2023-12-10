@@ -47,6 +47,7 @@ function getAction(actionType) {
     let action = null,
         actionId = createId();
     if (actionType === "IF_CONDITION") action = new IfConditionAction(actionId);
+    else if (actionType === "SWITCH") action = new SwitchAction(actionId);
     ACTIONS.set(actionId, action);
     return action;
 }
