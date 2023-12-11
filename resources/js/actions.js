@@ -1674,6 +1674,179 @@ class WebhookAction extends Action {
     }
 }
 
+class CodeBlockAction extends Action {
+    constructor(actionId, parentActionId = null, childActionId = null) {
+        super(
+            actionId,
+            "Codeblock",
+            "New Codeblock Action",
+            "CODE_BLOCK",
+            parentActionId,
+            childActionId,
+            null,
+            "star",
+        );
+
+        this.code = "";
+    }
+
+    markupForMainAction() {
+        return `
+        <div id="${this.actionId}">
+            <div>
+                <div class="flex flex-col justify-start flex-nowrap group">
+                    <div class="flex relative self-center flex-col items-center">
+                        <div>${this.markupForMainWrapper()}</div>
+                    </div>
+                </div>
+                ${this.markupForTailBtn(null)}
+            </div>
+        </div>
+    `;
+    }
+
+    createActionForm() {
+        return `
+        <div id="formWrapper"> 
+            <h1 class="border-b border-neutral-500 flex items-center justify-center text-primary py-4">
+                ${this.actionText}
+            </h1>
+            <form action="#" class="flex items-center p-4 mt-8 flex-col">
+                ${this.markupForInputBox(
+                    "actionName",
+                    this.actionName,
+                    "Action Name",
+                    "Enter Action Name",
+                )}
+            </form>
+            <div>
+                <button class="btn bg-boxColor flex items-center justify-center hover:bg-neutral-600 ml-4 mb-4" onclick="openCodeBlock(${
+                    this.actionId
+                })"> 
+                    <span class="mr-1 text-[14px] text-warning material-symbols-outlined">code</span>
+                    <span> Write Code </span>
+                </button> 
+                <button
+                    id="debug"
+                    class="btn bg-boxColor hidden items-center justify-center hover:bg-neutral-600 mb-4 ml-4" 
+                    onclick="debugWorkflow(${this.actionId})"
+                >
+                    <span> Debug </span>
+                    <span class="ml-1 text-[10px] text-pure material-symbols-outlined">
+                        bug_report
+                    </span>
+                </button>
+            </div>
+        </div>
+    `;
+    }
+
+    saveActionForm() {
+        let actionName = document.getElementById("actionName").value;
+
+        this.actionName = actionName === "" ? this.actionName : actionName;
+
+        document.querySelector(`[actionName="${this.actionId}"]`).innerHTML =
+            this.actionName;
+    }
+
+    static getIntance(action) {
+        let instance = new CodeBlockAction(null);
+        instance.actionId = action.actionId;
+        instance.actionText = action.actionText;
+        instance.actionName = action.actionName;
+        instance.actionType = action.actionType;
+        instance.parentActionId = action.parentActionId;
+        instance.childActionId = action.childActionId;
+        instance.data = action.data;
+        instance.icon = action.icon;
+        instance.code = action.code;
+        return instance;
+    }
+
+    getObj() {
+        return {
+            actionId: this.actionId,
+            actionText: this.actionText,
+            actionName: this.actionName,
+            actionType: this.actionType,
+            parentActionId: this.parentActionId,
+            childActionId: this.childActionId,
+            data: this.data,
+            icon: this.icon,
+            code: this.code,
+        };
+    }
+
+    markupForDebugWorkflow() {
+        return `
+        <div class="w-[650px]">
+        <div class="flex items-center justify-center flex-col container text-pure">
+            <div class="p-4 border border-gray-500 w-[100%] h-[500px] rounded-md">
+                <div class="border-b border-gray-500 grid grid-cols-2 items-center justify-center">
+                    <div class="p-4 border-r border-gray-500 flex flex-col">
+                        <span class="text-primary">Action Name </span>
+                        <span class="text-sm">${this.actionName}</span>
+                    </div>
+                    <div class="p-4 flex flex-col">
+                        <span class="text-primary">Condition </span>
+                        <span class="text-sm">
+                            ${this.condition && this.condition}
+                        </span>
+                    </div>
+                </div>
+                <div class="border-b border-gray-500 grid grid-cols-2 items-center justify-center">
+                    <div class="p-4 border-r border-gray-500 flex flex-col">
+                        <span class="text-primary">True Condition Box Id</span>
+                        <span class="text-sm">${this.trueActionId}</span>
+                    </div>
+                    <div class="p-4 flex flex-col">
+                        <span class="text-primary">False Condition Box Id </span>
+                        <span class="text-sm">${this.falseActionId}</span>
+                    </div>
+                </div>
+                <div>
+                    <div class="p-2 flex flex-col">
+                        <span class="text-primary mb-2">Data</span>
+                        <textarea class="p-3 text-sm bg-dark border border-gray-500 rounded-md outline-none" rows="12">${
+                            this.data &&
+                            JSON.stringify(this.data).slice(
+                                0,
+                                Math.min(
+                                    JSON.stringify(this.data).length,
+                                    1000,
+                                ),
+                            )
+                        }...</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    `;
+    }
+
+    async getNextActions(input, nextActions) {
+        let code = this.code;
+        this.data = input;
+
+        try {
+            const http = new HTTPRequest(null);
+            let { data } = await http.webhookRequest(url, method, this.data);
+            console.log(data);
+            this.data = data;
+            this.updateActionStatus("SUCCESS");
+            nextActions.push({ edge: this.childActionId, input: data });
+        } catch (error) {
+            console.log(error);
+            this.updateActionStatus("ERROR");
+            notify("Something went wrong!", "danger");
+            this.data = "ERROR ACCURED!";
+            return;
+        }
+    }
+}
+
 function addSwitchCase(actionId) {
     let key = actionId.getAttribute("id");
     let action = ACTIONS.get(key);

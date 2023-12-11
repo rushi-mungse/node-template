@@ -56,6 +56,8 @@ function getAction(actionType) {
     else if (actionType === "NOTIFICATION")
         action = new NotificationAction(actionId);
     else if (actionType === "WEBHOOK") action = new WebhookAction(actionId);
+    else if (actionType === "CODE_BLOCK")
+        action = new CodeBlockAction(actionId);
 
     ACTIONS.set(actionId, action);
     return action;
