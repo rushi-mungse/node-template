@@ -1688,6 +1688,7 @@ class CodeBlockAction extends Action {
         );
 
         this.code = "";
+        this.context = {};
     }
 
     markupForMainAction() {
@@ -1761,6 +1762,7 @@ class CodeBlockAction extends Action {
         instance.data = action.data;
         instance.icon = action.icon;
         instance.code = action.code;
+        instance.context = action.context;
         return instance;
     }
 
@@ -1775,6 +1777,7 @@ class CodeBlockAction extends Action {
             data: this.data,
             icon: this.icon,
             code: this.code,
+            context: this.context,
         };
     }
 
@@ -1827,22 +1830,228 @@ class CodeBlockAction extends Action {
     }
 
     async getNextActions(input, nextActions) {
-        let code = this.code;
-        this.data = input;
-
         try {
-            const http = new HTTPRequest(null);
-            let { data } = await http.webhookRequest(url, method, this.data);
-            console.log(data);
+            let code = this.code;
+            let context = {};
+            for (const key in this.context) {
+                if (
+                    typeof eval(this.context[key].value) === "undefined" ||
+                    !eval(this.context[key].value)
+                ) {
+                    this.updateActionStatus("ERROR");
+                    notify("Pass parameter values valid!", "danger");
+                    this.data = "ERROR ACCURED!";
+                    return;
+                }
+                context[this.context[key].key] = eval(this.context[key].value);
+            }
+
+            const data = await axios.post("/api/compiler", { code, context });
             this.data = data;
             this.updateActionStatus("SUCCESS");
-            nextActions.push({ edge: this.childActionId, input: data });
+            nextActions.push({ edge: this.childActionId, data: data.data });
+        } catch (error) {
+            console.log(error);
+            notify("Something Went Wrong!", "danger");
+            action.data = error;
+            return;
+        }
+    }
+}
+
+class SendEmailAction extends Action {
+    constructor(actionId, parentActionId = null, childActionId = null) {
+        super(
+            actionId,
+            "Send Email",
+            "New Send Email Action",
+            "SEND_EMAIL",
+            parentActionId,
+            childActionId,
+            null,
+            "star",
+        );
+
+        this.to = "";
+        this.from = "";
+        this.subject = "";
+        this.html = "";
+    }
+
+    markupForMainAction() {
+        return `
+        <div id="${this.actionId}">
+            <div>
+                <div class="flex flex-col justify-start flex-nowrap group">
+                    <div class="flex relative self-center flex-col items-center">
+                        <div>${this.markupForMainWrapper()}</div>
+                    </div>
+                </div>
+                ${this.markupForTailBtn(null)}
+            </div>
+        </div>
+    `;
+    }
+
+    createActionForm() {
+        return `
+        <div id="formWrapper"> 
+            <h1 class="border-b border-neutral-500 flex items-center justify-center text-primary py-4">
+                ${this.actionText}
+            </h1>
+            <form action="#" class="flex items-center p-4 mt-8 flex-col">
+                ${this.markupForInputBox(
+                    "actionName",
+                    this.actionName,
+                    "Action Name",
+                    "Enter Action Name",
+                )}
+                ${this.markupForInputBox("from", this.from, "From")}
+                ${this.markupForInputBox("to", this.to, "To")}
+                ${this.markupForInputBox("subject", this.subject, "Subject")}
+                ${this.markupForInputBox("html", this.subject, "Html Content")}
+            </form>
+            <button
+                id="debug"
+                class="btn bg-boxColor hidden items-center justify-center hover:bg-neutral-600 mb-4 ml-4" 
+                onclick="debugWorkflow(${this.actionId})"
+            >
+                <span> Debug </span>
+                <span class="ml-1 text-[10px] text-pure material-symbols-outlined">
+                    bug_report
+                </span>
+            </button>
+        </div>
+    `;
+    }
+
+    saveActionForm() {
+        let actionName = document.getElementById("actionName").value;
+        let subject = document.getElementById("subject").value;
+        let html = document.getElementById("html").value;
+        let to = document.getElementById("to").value;
+        let from = document.getElementById("from").value;
+
+        this.actionName = actionName === "" ? this.actionName : actionName;
+        this.subject = subject === "" ? this.subject : subject;
+        this.html = html === "" ? this.html : html;
+        this.to = to === "" ? this.to : to;
+        this.from = from === "" ? this.from : from;
+
+        document.querySelector(`[actionName="${this.actionId}"]`).innerHTML =
+            this.actionName;
+    }
+
+    static getIntance(action) {
+        let instance = new SendEmailAction(null);
+        instance.actionId = action.actionId;
+        instance.actionText = action.actionText;
+        instance.actionName = action.actionName;
+        instance.actionType = action.actionType;
+        instance.parentActionId = action.parentActionId;
+        instance.childActionId = action.childActionId;
+        instance.data = action.data;
+        instance.icon = action.icon;
+        instance.to = action.to;
+        instance.from = action.from;
+        instance.subject = action.subject;
+        instance.html = action.html;
+        return instance;
+    }
+
+    getObj() {
+        return {
+            actionId: this.actionId,
+            actionText: this.actionText,
+            actionName: this.actionName,
+            actionType: this.actionType,
+            parentActionId: this.parentActionId,
+            childActionId: this.childActionId,
+            data: this.data,
+            icon: this.icon,
+            to: this.to,
+            from: this.from,
+            subject: this.subject,
+            html: this.html,
+        };
+    }
+
+    markupForDebugWorkflow() {
+        return `
+        <div class="w-[650px]">
+        <div class="flex items-center justify-center flex-col container text-pure">
+            <div class="p-4 border border-gray-500 w-[100%] h-[500px] rounded-md">
+                <div class="border-b border-gray-500 grid grid-cols-2 items-center justify-center">
+                    <div class="p-4 border-r border-gray-500 flex flex-col">
+                        <span class="text-primary">Action Name </span>
+                        <span class="text-sm">${this.actionName}</span>
+                    </div>
+                    <div class="p-4 flex flex-col">
+                        <span class="text-primary">Condition </span>
+                        <span class="text-sm">
+                            ${this.condition && this.condition}
+                        </span>
+                    </div>
+                </div>
+                <div class="border-b border-gray-500 grid grid-cols-2 items-center justify-center">
+                    <div class="p-4 border-r border-gray-500 flex flex-col">
+                        <span class="text-primary">True Condition Box Id</span>
+                        <span class="text-sm">${this.trueActionId}</span>
+                    </div>
+                    <div class="p-4 flex flex-col">
+                        <span class="text-primary">False Condition Box Id </span>
+                        <span class="text-sm">${this.falseActionId}</span>
+                    </div>
+                </div>
+                <div>
+                    <div class="p-2 flex flex-col">
+                        <span class="text-primary mb-2">Data</span>
+                        <textarea class="p-3 text-sm bg-dark border border-gray-500 rounded-md outline-none" rows="12">${
+                            this.data &&
+                            JSON.stringify(this.data).slice(
+                                0,
+                                Math.min(
+                                    JSON.stringify(this.data).length,
+                                    1000,
+                                ),
+                            )
+                        }...</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    `;
+    }
+
+    async getNextActions(input, nextActions) {
+        let html = this.html,
+            to = this.to,
+            from = this.from,
+            subject = this.subject;
+
+        try {
+            const { data } = await axios.post("/api/send-email", {
+                html,
+                to,
+                from,
+                subject,
+            });
+
+            if (!data.ok) {
+                this.updateActionStatus("ERROR");
+                notify("Something went wrong!", "danger");
+                this.data = "ERROR ACCURED!";
+                return;
+            }
+
+            this.data = input;
+            nextActions.push({ edge: this.childActionId, data: input });
         } catch (error) {
             console.log(error);
             this.updateActionStatus("ERROR");
             notify("Something went wrong!", "danger");
             this.data = "ERROR ACCURED!";
-            return;
         }
     }
 }
