@@ -58,6 +58,8 @@ function getAction(actionType) {
     else if (actionType === "WEBHOOK") action = new WebhookAction(actionId);
     else if (actionType === "CODE_BLOCK")
         action = new CodeBlockAction(actionId);
+    else if (actionType === "SEND_EMAIL")
+        action = new SendEmailAction(actionId);
 
     ACTIONS.set(actionId, action);
     return action;
