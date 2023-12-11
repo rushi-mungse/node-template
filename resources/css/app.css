@@ -20,11 +20,6 @@
 .inputBoxSecondary {
     position: relative;
     width: 100%;
-    margin-bottom: 40px;
-}
-
-.inputBoxSecondary {
-    margin-bottom: 20px;
 }
 
 .inputBox input,
@@ -230,4 +225,26 @@
     display: none;
 }
 
+.CodeMirror {
+    height: 500px;
+}
 
+#codeblock {
+    pointer-events: none;
+    opacity: 0;
+    transition: all 0.3s ease-in-out;
+}
+
+#codeblock.active {
+    pointer-events: auto;
+    opacity: 1;
+}
+
+#codeblock div {
+    transform: translateY(-100%);
+    transition: all 0.3s ease-in-out;
+}
+
+#codeblock.active div {
+    transform: translateY(0px);
+}

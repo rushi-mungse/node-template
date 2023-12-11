@@ -46,7 +46,19 @@ function toggleDebugBtn() {
 function getAction(actionType) {
     let action = null,
         actionId = createId();
+    //TODO:
     if (actionType === "IF_CONDITION") action = new IfConditionAction(actionId);
+    else if (actionType === "SWITCH") action = new SwitchAction(actionId);
+    else if (actionType === "FOR_LOOP") action = new ForLoopAction(actionId);
+    else if (actionType === "LOOP_DATA") action = new LoopDataAction(actionId);
+    else if (actionType === "CONSOLE_LOG")
+        action = new ConsoleLogAction(actionId);
+    else if (actionType === "NOTIFICATION")
+        action = new NotificationAction(actionId);
+    else if (actionType === "WEBHOOK") action = new WebhookAction(actionId);
+    else if (actionType === "CODE_BLOCK")
+        action = new CodeBlockAction(actionId);
+
     ACTIONS.set(actionId, action);
     return action;
 }

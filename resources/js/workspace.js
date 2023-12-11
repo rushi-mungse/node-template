@@ -12,6 +12,9 @@ let actionAndControlsForm = document.getElementById("actionAndControlsForm");
 let actionAndControlsFormWrapper = document.getElementById(
     "actionAndControlsFormWrapper",
 );
+
+// ROOT_ACTION = new IfConditionAction(createId());
+// ACTIONS.set(ROOT_ACTION.actionId, ROOT_ACTION);
 // workspace.innerHTML = ROOT_ACTION.markupForMainAction();
 
 let WORKFLOW_NAME,
@@ -41,19 +44,17 @@ function dropAction(parentEl, wrapperEl) {
         parentEl.insertAdjacentHTML("afterend", markup);
     } else {
         let whichLink = wrapperEl.getAttribute("which-link");
-        if (whichLink === "case") {
-        } else if (whichLink === "trueAction") {
-            parentChildId = parentAction.trueActionId;
-            parentAction.trueActionId = curAction.actionId;
+        if (whichLink === "middleAction") {
+            let caseId = wrapperEl.getAttribute("id");
+            parentChildId = parentAction.conditions[caseId].childActionId;
+            parentAction.conditions[caseId].childActionId = curAction.actionId;
             curAction.parentActionId = parentId;
             curAction.childActionId = parentChildId;
-        } else if (whichLink === "falseAction") {
-            parentChildId = parentAction.falseActionId;
-            parentAction.falseActionId = curAction.actionId;
+        } else {
+            parentChildId = parentAction[whichLink];
+            parentAction[whichLink] = curAction.actionId;
             curAction.parentActionId = parentId;
             curAction.childActionId = parentChildId;
-        } else if (whichLink === "rightBoxId") {
-        } else if (whichLink === "defaultCase") {
         }
         wrapperEl.innerHTML += markup;
     }
@@ -165,7 +166,7 @@ function toggleActionsAndControls() {
 async function dfs(root, input) {
     if (!ACTIONS.has(root)) return;
     let action = ACTIONS.get(root);
-    console.log(action);
+    // console.log(action);
     const nextActions = await getNextActions(action, input);
     (typeof nextActions !== "undefined" ? nextActions : []).map(
         async (next) => await dfs(next.edge, next.data),
@@ -174,7 +175,6 @@ async function dfs(root, input) {
 
 function runWorkflow() {
     RUN_CODE = true;
-    console.log(ACTIONS);
     for (let [_, value] of ACTIONS) value.updateActionStatus("WARNING");
     dfs(ROOT_ACTION.actionId, null);
 }
@@ -267,31 +267,29 @@ function buildWorkflow(data) {
     dfsForBuildWorkflow(ROOT_ACTION.childActionId, ROOT_ACTION.actionId);
 }
 
+//TODO:
 function dfsForBuildWorkflow(curActionId, wrapperActionId) {
     if (!ACTIONS.has(curActionId)) return;
 
     let action = ACTIONS.get(curActionId);
     let wrapperEl = document.getElementById(wrapperActionId);
+
     wrapperEl.insertAdjacentHTML("afterend", action.markupForMainAction());
 
-    if (action.id === "IF_CONDITION") {
+    if (action.actionType === "IF_CONDITION") {
         dfsForBuildWorkflow(action.trueActionId, action.trueWrapperId);
         dfsForBuildWorkflow(action.falseActionId, action.falseWrapperId);
-    } else if (action.id === "FOR_LOOP")
-        dfsForBuildWorkflow(
-            action.rightSideActionId,
-            action.rightSideWrapperId,
-        );
-    else if (action.id === "LOOP_DATA")
-        dfsForBuildWorkflow(
-            action.rightSideActionId,
-            action.rightSideWrapperId,
-        );
-    else if (action.id === "SWITCH") {
-        for (let i = 0; i < action.cases.length; i++)
-            dfsForBuildWorkflow(action.cases[i], action.caseWrapperIds[i]);
-        dfsForBuildWorkflow(action.defaultCase, action.defaultCaseWrapperId);
+    } else if (action.actionType === "FOR_LOOP")
+        dfsForBuildWorkflow(action.rightActionId, action.rightWrapperId);
+    else if (action.actionType === "LOOP_DATA")
+        dfsForBuildWorkflow(action.rightActionId, action.rightWrapperId);
+    else if (action.actionType === "SWITCH") {
+        dfsForBuildWorkflow(action.leftActionId, action.leftWrapperId);
+        for (let key in action.conditions)
+            dfsForBuildWorkflow(action.conditions[key].childActionId, key);
+        dfsForBuildWorkflow(action.defaultActionId, action.defaultWrapperId);
     }
+    dfsForBuildWorkflow(action.childActionId, action.actionId);
 }
 
 init();

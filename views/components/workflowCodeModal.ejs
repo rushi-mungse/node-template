@@ -3,12 +3,15 @@
         <button class="btn-secondary absolute top-4 right-4 bg-none outline-none text-sm" onclick="closeWorkflowCodeModal()">
             <i class="fa-solid fa-xmark"></i>
         </button>
-        <div class="flex flex-col w-full h-full">
+        <div class="flex flex-col w-full">
             <h1 class="rounded-md px-3 py-1 flex items-center justify-center mb-2 text-primary font-bold">🚀 Write Code Here</h1>
             <textarea id="workflowCode" class="bg-neutral-600 overflow-auto w-full outline-none rounded-md h-[100%] text-pure" name="" id="" rows="10">
             </textarea>
         </div>
-        <div class="flex items-center justify-end mt-2 w-[100%]">
+        <div class="flex items-center justify-between mt-2 w-[100%]">
+            <button class="btn-primary" onclick="formateJson()">
+                Formate
+            </button> 
             <button class="btn-primary" onclick="saveWorkflowCodeModal()">
                 Save
             </button>
