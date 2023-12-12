@@ -58,6 +58,10 @@ function getAction(actionType) {
     else if (actionType === "WEBHOOK") action = new WebhookAction(actionId);
     else if (actionType === "CODE_BLOCK")
         action = new CodeBlockAction(actionId);
+    else if (actionType === "SEND_EMAIL")
+        action = new SendEmailAction(actionId);
+    else if (actionType === "HTTP_REQUEST")
+        action = new HTTPRequestAction(actionId);
 
     ACTIONS.set(actionId, action);
     return action;
@@ -65,7 +69,7 @@ function getAction(actionType) {
 
 async function getNextActions(action, input) {
     let nextActions = [];
-    action.getNextActions(input, nextActions);
+    await action.getNextActions(input, nextActions);
     return nextActions;
 }
 

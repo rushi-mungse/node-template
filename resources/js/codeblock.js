@@ -7,17 +7,15 @@ let codemirror1 = CodeMirror.fromTextArea(editor, {
     indentUnit: 2,
 });
 
-codemirror1.setValue("// Write code here");
-
 // close codeblock form
 function closeCodeblockForm() {
-    let codeblock = document.getElementById("codeblock");
-    codeblock.classList.remove(".active");
+    let codeblock = document.getElementById("codeblockModal");
+    codeblock.classList.remove("active");
 }
 
 // save codeblcok form
 function saveCodeblockForm() {
-    let codeblock = document.getElementById("codeblock");
+    let codeblock = document.getElementById("codeblockModal");
     let parameterOpsBox = document.getElementById("parameterOpsBox");
 
     let key = codeblock.getAttribute("key");
@@ -42,8 +40,8 @@ function saveCodeblockForm() {
 function openCodeBlock(el) {
     closeActionForm();
 
-    let codeblock = document.getElementById("codeblock");
-    codeblock.classList.add(".active");
+    let codeblock = document.getElementById("codeblockModal");
+    codeblock.classList.add("active");
 
     let parameterOpsBox = document.getElementById("parameterOpsBox");
     parameterOpsBox.innerHTML = "";
@@ -91,7 +89,7 @@ function getMarkupForParameterOption(id, key = null, value = null) {
 }
 
 function addParameterOptions(key = null, value = null) {
-    let codeblock = document.getElementById("codeblock");
+    let codeblock = document.getElementById("codeblockModal");
     let actionId = codeblock.getAttribute("key");
 
     let parameterOpsBox = document.getElementById("parameterOpsBox");
@@ -108,7 +106,7 @@ function addParameterOptions(key = null, value = null) {
 }
 
 function removeParameterOptions(btn) {
-    let codeblock = document.getElementById("codeblock");
+    let codeblock = document.getElementById("codeblockModal");
     let key = codeblock.getAttribute("key");
     let id = btn.target.getAttribute("parameterId");
     let action = ACTIONS.get(key);

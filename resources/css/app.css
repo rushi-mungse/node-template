@@ -226,25 +226,31 @@
 }
 
 .CodeMirror {
-    height: 500px;
+    width: 800px !important;
+    height: 500px !important;
 }
 
-#codeblock {
+#codeblockModal {
     pointer-events: none;
     opacity: 0;
     transition: all 0.3s ease-in-out;
 }
 
-#codeblock.active {
+#codeblockModal.active {
     pointer-events: auto;
     opacity: 1;
 }
 
-#codeblock div {
+#codeblockModal div {
     transform: translateY(-100%);
     transition: all 0.3s ease-in-out;
 }
 
-#codeblock.active div {
+#codeblockModal.active div {
     transform: translateY(0px);
+}
+
+.CodeMirror-selected {
+    background-color: #cccccc !important;
+    opacity: .50;
 }

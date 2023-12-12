@@ -1,3 +1,4 @@
+/* Status object for update action status with icon and color */
 const STATUS = {
     ERROR: {
         icon: "xmark",
@@ -13,6 +14,7 @@ const STATUS = {
     },
 };
 
+/* Main action super class*/
 class Action {
     constructor(
         actionId,
@@ -95,6 +97,308 @@ class Action {
     }
 }
 
+/** Http Reqest action */
+class HTTPRequestAction extends Action {
+    constructor(actionId, parentActionId = null, childActionId = null) {
+        super(
+            actionId,
+            "HTTP Request",
+            "New Http Request Action",
+            "HTTP_REQUEST",
+            parentActionId,
+            childActionId,
+            null,
+            "swap_horiz",
+        );
+
+        this.url = "https://jsonplaceholder.typicode.com/todos";
+        this.method = "GET";
+        this.authenticationType = "none";
+        this.auth = false;
+        this.username = null;
+        this.password = null;
+        this.token = null;
+        this.bodyType = null;
+        this.body = null;
+        this.headers = {};
+    }
+
+    markupForMainAction() {
+        return `
+        <div id="${this.actionId}">
+            <div>
+                <div class="flex flex-col justify-start flex-nowrap group">
+                    <div class="flex relative self-center flex-col items-center">
+                        <div>${this.markupForMainWrapper()}</div>
+                    </div>
+                </div>
+                ${this.markupForTailBtn(null)}
+            </div>
+        </div>
+    `;
+    }
+
+    createActionForm() {
+        return `
+        <div id="formWrapper"> 
+            <h1 class="border-b border-neutral-500 flex items-center justify-center text-primary py-4">
+                ${this.actionText}
+            </h1>
+            <form action="#" class="flex items-center p-4 mt-8 flex-col">
+                ${this.markupForInputBox(
+                    "actionName",
+                    this.actionName,
+                    "Action Name",
+                    "Enter Action Name",
+                )}
+                ${this.#createSelectInputBox()}
+                ${this.markupForInputBox("url", this.url, "API URL")}
+            </form>
+            <div class="flex items-center justify-between">
+                <button class="btn-primary flex items-center justify-center hover:bg-blue-700 mb-4 ml-4" onclick="openConfigurationForm(${
+                    this.actionId
+                })"> 
+                    <span class="inline-block mr-2 text-[10px] text-pure material-symbols-outlined">settings</span>
+                    <span> Configuration </span>
+                </button> 
+                <button
+                    id="debug"
+                    class="btn bg-boxColor hidden items-center justify-center hover:bg-neutral-600 mb-4 ml-4" 
+                    onclick="debugWorkflow(${this.actionId})"
+                >
+                    <span> Debug </span>
+                    <span class="ml-1 text-[10px] text-pure material-symbols-outlined">
+                        bug_report
+                    </span>
+                </button>
+            </div>
+        </div>
+    `;
+    }
+
+    #createSelectInputBox() {
+        return `
+            <div class="inputBox mb-6">
+                <select id="method" name="method">
+                    <option value="GET" ${
+                        this.method === "GET" ? "selected" : ""
+                    }>GET</option>
+                    <option value="POST" ${
+                        this.method === "POST" ? "selected" : ""
+                    }>POST</option>
+                    <option value="DELETE" ${
+                        this.method === "DELETE" ? "selected" : ""
+                    }>DELETE</option>
+                    <option value="PUT" ${
+                        this.method === "PUT" ? "selected" : ""
+                    }>PUT</option>
+                    <option value="PATCH" ${
+                        this.method === "PATCH" ? "selected" : ""
+                    }>PATCH</option>
+                </select>
+                <label for="method">Select Method</label>
+            </div>
+        `;
+    }
+
+    saveActionForm() {
+        let actionName = document.getElementById("actionName").value;
+        let method = document.getElementById("method").value;
+        let url = document.getElementById("url").value;
+
+        this.actionName = actionName === "" ? this.actionName : actionName;
+        this.method = method === "" ? this.method : method;
+        this.url = url === "" ? this.url : url;
+
+        document.querySelector(`[actionName="${this.actionId}"]`).innerHTML =
+            this.actionName;
+    }
+
+    static getIntance(action) {
+        let instance = new HTTPRequestAction(null);
+        instance.actionId = action.actionId;
+        instance.actionText = action.actionText;
+        instance.actionName = action.actionName;
+        instance.actionType = action.actionType;
+        instance.parentActionId = action.parentActionId;
+        instance.childActionId = action.childActionId;
+        instance.data = action.data;
+        instance.icon = action.icon;
+        instance.url = action.url;
+        instance.method = action.method;
+        instance.authenticationType = action.authenticationType;
+        instance.auth = action.auth;
+        instance.username = action.username;
+        instance.password = action.password;
+        instance.token = action.token;
+        instance.bodyType = action.bodyType;
+        instance.body = action.body;
+        instance.headers = action.headers;
+
+        return instance;
+    }
+
+    static async buildObjFromCode(parentActionId, data, map, cb, arg) {
+        if (map.has(parentActionId)) {
+            let parentAction = map.get(parentActionId);
+            if (Array.isArray(arg)) {
+                parentAction[arg[0]][arg[1]][arg[2]] = data.actionId;
+            } else {
+                parentAction[arg] = data.actionId;
+            }
+        }
+
+        let instance = new HTTPRequestAction(null);
+        instance.actionId = data.actionId;
+        // instance.actionText = data.actionText;
+        instance.actionName = data.actionName;
+        instance.actionType = data.actionType;
+        instance.parentActionId = parentActionId;
+        instance.childActionId = null;
+        instance.data = data.data;
+        // instance.icon = data.icon;
+        instance.url = data.url;
+        instance.method = data.method;
+        instance.authenticationType = data.authenticationType;
+        instance.auth = data.auth;
+        instance.username = data.username;
+        instance.password = data.password;
+        instance.token = data.token;
+        instance.bodyType = data.bodyType;
+        instance.body = data.body;
+        instance.headers = data.headers;
+        map.set(instance.actionId, instance);
+
+        await cb(instance.actionId, data.childAction, map, "childActionId");
+    }
+
+    getObj() {
+        return {
+            actionId: this.actionId,
+            actionText: this.actionText,
+            actionName: this.actionName,
+            actionType: this.actionType,
+            parentActionId: this.parentActionId,
+            childActionId: this.childActionId,
+            data: this.data,
+            icon: this.icon,
+            method: this.method,
+            authenticationType: this.authenticationType,
+            auth: this.auth,
+            username: this.username,
+            password: this.password,
+            token: this.token,
+            bodyType: this.bodyType,
+            body: this.body,
+            headers: this.headers,
+            url: this.url,
+        };
+    }
+
+    markupForDebugWorkflow() {
+        return `
+        <div class="w-[650px]">
+        <div class="flex items-center justify-center flex-col container text-pure">
+            <div class="p-4 border border-gray-500 w-[100%] h-[500px] rounded-md">
+                <div class="border-b border-gray-500 grid grid-cols-2 items-center justify-center">
+                    <div class="p-4 border-r border-gray-500 flex flex-col">
+                        <span class="text-primary">Action Name </span>
+                        <span class="text-sm">${this.actionName}</span>
+                    </div>
+                    <div class="p-4 flex flex-col">
+                        <span class="text-primary">Condition </span>
+                        <span class="text-sm">
+                            ${this.condition && this.condition}
+                        </span>
+                    </div>
+                </div>
+                <div class="border-b border-gray-500 grid grid-cols-2 items-center justify-center">
+                    <div class="p-4 border-r border-gray-500 flex flex-col">
+                        <span class="text-primary">True Condition Box Id</span>
+                        <span class="text-sm">${this.trueActionId}</span>
+                    </div>
+                    <div class="p-4 flex flex-col">
+                        <span class="text-primary">False Condition Box Id </span>
+                        <span class="text-sm">${this.falseActionId}</span>
+                    </div>
+                </div>
+                <div>
+                    <div class="p-2 flex flex-col">
+                        <span class="text-primary mb-2">Data</span>
+                        <textarea class="p-3 text-sm bg-dark border border-gray-500 rounded-md outline-none" rows="12">${
+                            this.data &&
+                            JSON.stringify(this.data).slice(
+                                0,
+                                Math.min(
+                                    JSON.stringify(this.data).length,
+                                    1000,
+                                ),
+                            )
+                        }...</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    `;
+    }
+
+    async getNextActions(input, nextActions) {
+        let action = this.getObj();
+        const http = new HTTPRequest(action);
+        try {
+            let { data } = await http.httpRequest();
+            this.updateActionStatus("SUCCESS");
+            this.data = data;
+            nextActions.push({ edge: this.childActionId, data });
+        } catch (error) {
+            console.log(error);
+            this.data = "ERROR ACCURED!";
+            this.updateActionStatus("ERROR");
+            notify("Something went wrong!", "danger");
+            return;
+        }
+    }
+
+    getWorflowCodeObj() {
+        return {
+            actionId: this.actionId,
+            // actionText: this.actionText,
+            actionName: this.actionName,
+            actionType: this.actionType,
+            parentActionId: null,
+            childAction: null,
+            data: this.data,
+            // icon: this.icon,
+            method: this.method,
+            authenticationType: this.authenticationType,
+            auth: this.auth,
+            username: this.username,
+            password: this.password,
+            token: this.token,
+            bodyType: this.bodyType,
+            body: this.body,
+            headers: this.headers,
+            url: this.url,
+        };
+    }
+
+    buildWorkflowCode(parentActionId, data, arg, cb) {
+        let output;
+        if (Array.isArray(arg)) {
+            data[arg[0]][arg[1]][arg[2]] = this.getWorflowCodeObj();
+            output = data[arg[0]][arg[1]][arg[2]];
+        } else {
+            data[arg] = this.getWorflowCodeObj();
+            output = data[arg];
+        }
+
+        output.parentActionId = parentActionId;
+        cb(this.childActionId, this.actionId, output, "childAction");
+    }
+}
+
+/** If conditon action */
 class IfConditionAction extends Action {
     constructor(actionId, parentActionId = null, childActionId = null) {
         super(
@@ -105,7 +409,7 @@ class IfConditionAction extends Action {
             parentActionId,
             childActionId,
             null,
-            "network-wired",
+            "device_hub",
         );
 
         this.trueActionId = null;
@@ -253,6 +557,37 @@ class IfConditionAction extends Action {
         };
     }
 
+    static async buildObjFromCode(parentActionId, data, map, cb, arg) {
+        if (map.has(parentActionId)) {
+            let parentAction = map.get(parentActionId);
+            if (Array.isArray(arg)) {
+                parentAction[arg[0]][arg[1]][arg[2]] = data.actionId;
+            } else {
+                parentAction[arg] = data.actionId;
+            }
+        }
+
+        let instance = new IfConditionAction(null);
+        instance.actionId = data.actionId;
+        // instance.actionText = action.actionText;
+        instance.actionName = data.actionName;
+        instance.actionType = data.actionType;
+        instance.parentActionId = data.parentActionId;
+        instance.childActionId = null;
+        instance.data = data.data;
+        // instance.icon = action.icon;
+        instance.trueActionId = null;
+        instance.falseActionId = null;
+        instance.condition = data.condition;
+        // instance.trueWrapperId = createId(),
+        // instance.falseWrapperId = action.falseWrapperId;
+        map.set(instance.actionId, instance);
+
+        await cb(instance.actionId, data.trueAction, map, "trueActionId");
+        await cb(instance.actionId, data.falseAction, map, "falseActionId");
+        await cb(instance.actionId, data.childAction, map, "childActionId");
+    }
+
     markupForDebugWorkflow() {
         return `
         <div class="w-[650px]">
@@ -318,8 +653,43 @@ class IfConditionAction extends Action {
 
         this.updateActionStatus("SUCCESS");
     }
+
+    getWorflowCodeObj() {
+        return {
+            actionId: this.actionId,
+            // actionText: this.actionText,
+            actionName: this.actionName,
+            actionType: this.actionType,
+            parentActionId: this.parentActionId,
+            childAction: null, // modify
+            data: this.data,
+            // icon: this.icon,
+            trueAction: null, // modify
+            falseAction: null, // modify
+            condition: this.condition,
+            // trueWrapperId: this.trueWrapperId,
+            // falseWrapperId: this.falseWrapperId,
+        };
+    }
+
+    buildWorkflowCode(parentActionId, data, arg, cb) {
+        let output;
+        if (Array.isArray(arg)) {
+            data[arg[0]][arg[1]][arg[2]] = this.getWorflowCodeObj();
+            output = data[arg[0]][arg[1]][arg[2]];
+        } else {
+            data[arg] = this.getWorflowCodeObj();
+            output = data[arg];
+        }
+
+        output.parentActionId = parentActionId;
+        cb(this.trueActionId, this.actionId, output, "trueAction");
+        cb(this.falseActionId, this.actionId, output, "falseAction");
+        cb(this.childActionId, this.actionId, output, "childAction");
+    }
 }
 
+/** switch case action */
 class SwitchAction extends Action {
     constructor(actionId, parentActionId = null, childActionId = null) {
         super(
@@ -330,7 +700,7 @@ class SwitchAction extends Action {
             parentActionId,
             childActionId,
             null,
-            "toggle-off",
+            "switch",
         );
 
         this.conditions = {
@@ -696,8 +1066,112 @@ class SwitchAction extends Action {
 
         this.updateActionStatus("SUCCESS");
     }
+
+    getWorflowCodeObj() {
+        let newConditions = {},
+            cnt = 1;
+        for (let key in this.conditions) {
+            newConditions[`Case_${cnt}`] = {
+                condition: this.conditions[key].condition,
+                childAction: null,
+            };
+            cnt++;
+        }
+
+        return {
+            actionId: this.actionId,
+            // actionText: this.actionText,
+            actionName: this.actionName,
+            actionType: this.actionType,
+            parentActionId: null,
+            childAction: null, // modify
+            data: this.data,
+            // icon: this.icon,
+            conditions: newConditions, // modify
+            leftAction: null, // modify
+            // leftWrapperId: this.leftWrapperId,
+            leftCondition: this.leftCondition,
+            // defaultWrapperId: this.defaultWrapperId,
+            defaultAction: null, // modify
+        };
+    }
+
+    static async buildObjFromCode(parentActionId, data, map, cb, arg) {
+        if (map.has(parentActionId)) {
+            let parentAction = map.get(parentActionId);
+            if (Array.isArray(arg)) {
+                parentAction[arg[0]][arg[1]][arg[2]] = data.actionId;
+            } else {
+                parentAction[arg] = data.actionId;
+            }
+        }
+        let newConditions = {};
+        let oldConditions = data.conditions;
+        for (let key in oldConditions) {
+            newConditions[createId()] = {
+                condition: oldConditions[key].condition,
+                childActionId: null,
+            };
+        }
+
+        let instance = new SwitchAction(null);
+        instance.actionId = data.actionId;
+        // instance.actionText = action.actionText;
+        instance.actionName = data.actionName;
+        instance.actionType = data.actionType;
+        instance.parentActionId = data.parentActionId;
+        instance.childActionId = null;
+        instance.data = data.data;
+        // instance.icon = action.icon;
+        instance.conditions = newConditions;
+        instance.leftActionId = null;
+        // instance.leftWrapperId = action.leftWrapperId;
+        instance.leftCondition = data.leftCondition;
+        // instance.defaultWrapperId = action.defaultWrapperId;
+        instance.defaultActionId = null;
+        map.set(instance.actionId, instance);
+
+        await cb(instance.actionId, data.leftAction, map, "leftActionId");
+        let cnt = 1;
+        for (let key in instance.conditions) {
+            await cb(instance.actionId, data.conditions[`Case_${cnt}`], map, [
+                "conditions",
+                key,
+                "childActionId",
+            ]);
+            cnt++;
+        }
+        await cb(instance.actionId, data.defaultAction, map, "defaultActionId");
+    }
+
+    buildWorkflowCode(parentActionId, data, arg, cb) {
+        let output;
+        if (Array.isArray(arg)) {
+            data[arg[0]][arg[1]][arg[2]] = this.getWorflowCodeObj();
+            output = data[arg[0]][arg[1]][arg[2]];
+        } else {
+            data[arg] = this.getWorflowCodeObj();
+            output = data[arg];
+        }
+
+        output.parentActionId = parentActionId;
+
+        cb(this.leftActionId, this.actionId, output, "leftAction");
+        let cnt = 1;
+        for (let id in this.conditions) {
+            cb(this.conditions[id].childActionId, this.actionId, output, [
+                "conditions",
+                `Case_${cnt}`,
+                "childAction",
+            ]);
+            cnt++;
+        }
+        cb(this.defaultActionId, this.actionId, output, "defaultAction");
+        cb(this.childActionId, this.actionId, output, "childAction");
+    }
 }
 
+/** for loop action */
 class ForLoopAction extends Action {
     constructor(actionId, parentActionId = null, childActionId = null) {
         super(
@@ -708,7 +1182,7 @@ class ForLoopAction extends Action {
             parentActionId,
             childActionId,
             null,
-            "network-wired",
+            "laps",
         );
 
         this.rightActionId = null;
@@ -828,9 +1302,8 @@ class ForLoopAction extends Action {
         this.endValue = endValue === "" ? this.endValue : endValue;
         this.step = step === "" ? this.step : step;
 
-        document.querySelector(
-            `[data-actionName="${this.actionId}"]`,
-        ).innerHTML = this.actionName;
+        document.querySelector(`[actionName="${this.actionId}"]`).innerHTML =
+            this.actionName;
 
         document.querySelector(`[for-loop="${this.actionId}"]`).innerHTML =
             `Loop from ${this.startValue} to ${this.endValue} with step ${this.step}`;
@@ -926,8 +1399,72 @@ class ForLoopAction extends Action {
         this.data = input;
         this.updateActionStatus("SUCCESS");
     }
+
+    getWorflowCodeObj() {
+        return {
+            actionId: this.actionId,
+            // actionText: this.actionText,
+            actionName: this.actionName,
+            actionType: this.actionType,
+            parentActionId: null,
+            childAction: null,
+            data: this.data,
+            // icon: this.icon,
+            rightAction: null,
+            // rightWrapperId: this.rightWrapperId,
+            step: this.step,
+            endValue: this.endValue,
+            startValue: this.startValue,
+        };
+    }
+
+    static async buildObjFromCode(parentActionId, data, map, cb, arg) {
+        if (map.has(parentActionId)) {
+            let parentAction = map.get(parentActionId);
+            if (Array.isArray(arg)) {
+                parentAction[arg[0]][arg[1]][arg[2]] = data.actionId;
+            } else {
+                parentAction[arg] = data.actionId;
+            }
+        }
+
+        let instance = new ForLoopAction(null);
+        instance.actionId = data.actionId;
+        // instance.actionText = data.actionText;
+        instance.actionName = data.actionName;
+        instance.actionType = data.actionType;
+        instance.parentActionId = data.parentActionId;
+        instance.childActionId = null;
+        instance.data = data.data;
+        // instance.icon = data.icon;
+        instance.rightActionId = null;
+        // instance.rightWrapperId = data.rightWrapperId;
+        instance.endValue = data.endValue;
+        instance.step = data.step;
+        instance.startValue = data.startValue;
+        map.set(instance.actionId, instance);
+
+        await cb(instance.actionId, data.rightAction, map, "rightActionId");
+        await cb(instance.actionId, data.childAction, map, "childActionId");
+    }
+
+    buildWorkflowCode(parentActionId, data, arg, cb) {
+        let output;
+        if (Array.isArray(arg)) {
+            data[arg[0]][arg[1]][arg[2]] = this.getWorflowCodeObj();
+            output = data[arg[0]][arg[1]][arg[2]];
+        } else {
+            data[arg] = this.getWorflowCodeObj();
+            output = data[arg];
+        }
+
+        output.parentActionId = parentActionId;
+        cb(this.rightActionId, this.actionId, output, "rightAction");
+        cb(this.childActionId, this.actionId, output, "childAction");
+    }
 }
 
+/** Loop data action */
 class LoopDataAction extends Action {
     constructor(actionId, parentActionId = null, childActionId = null) {
         super(
@@ -938,7 +1475,7 @@ class LoopDataAction extends Action {
             parentActionId,
             childActionId,
             null,
-            "network-wired",
+            "repeat",
         );
 
         this.rightActionId = null;
@@ -1037,9 +1574,8 @@ class LoopDataAction extends Action {
         this.actionName = actionName === "" ? this.actionName : actionName;
         this.dataForLoop = dataForLoop === "" ? this.dataForLoop : dataForLoop;
 
-        document.querySelector(
-            `[data-actionName="${this.actionId}"]`,
-        ).innerHTML = this.actionName;
+        document.querySelector(`[actionName="${this.actionId}"]`).innerHTML =
+            this.actionName;
     }
 
     static getIntance(action) {
@@ -1056,6 +1592,34 @@ class LoopDataAction extends Action {
         instance.rightWrapperId = action.rightWrapperId;
         instance.dataForLoop = action.dataForLoop;
         return instance;
+    }
+
+    static async buildObjFromCode(parentActionId, data, map, cb, arg) {
+        if (map.has(parentActionId)) {
+            let parentAction = map.get(parentActionId);
+            if (Array.isArray(arg)) {
+                parentAction[arg[0]][arg[1]][arg[2]] = data.actionId;
+            } else {
+                parentAction[arg] = data.actionId;
+            }
+        }
+
+        let instance = new LoopDataAction(null);
+        instance.actionId = data.actionId;
+        // instance.actionText = data.actionText;
+        instance.actionName = data.actionName;
+        instance.actionType = data.actionType;
+        instance.parentActionId = data.parentActionId;
+        instance.childActionId = null;
+        instance.data = data.data;
+        // instance.icon = data.icon;
+        instance.rightActionId = null;
+        // instance.rightWrapperId = data.rightWrapperId;
+        instance.dataForLoop = data.dataForLoop;
+        map.set(instance.actionId, instance);
+
+        await cb(instance.actionId, data.rightAction, map, "rightActionId");
+        await cb(instance.actionId, data.childAction, map, "childActionId");
     }
 
     getObj() {
@@ -1128,8 +1692,40 @@ class LoopDataAction extends Action {
         this.data = input;
         this.updateActionStatus("SUCCESS");
     }
+
+    getWorflowCodeObj() {
+        return {
+            actionId: this.actionId,
+            // actionText: this.actionText,
+            actionName: this.actionName,
+            actionType: this.actionType,
+            parentActionId: null,
+            childAction: null,
+            data: this.data,
+            // icon: this.icon,
+            rightAction: null,
+            // rightWrapperId: this.rightWrapperId,
+            dataForLoop: this.dataForLoop,
+        };
+    }
+
+    buildWorkflowCode(parentActionId, data, arg, cb) {
+        let output;
+        if (Array.isArray(arg)) {
+            data[arg[0]][arg[1]][arg[2]] = this.getWorflowCodeObj();
+            output = data[arg[0]][arg[1]][arg[2]];
+        } else {
+            data[arg] = this.getWorflowCodeObj();
+            output = data[arg];
+        }
+
+        output.parentActionId = parentActionId;
+        cb(this.rightActionId, this.actionId, output, "rightAction");
+        cb(this.childActionId, this.actionId, output, "childAction");
+    }
 }
 
+/**Consloe log action */
 class ConsoleLogAction extends Action {
     constructor(actionId, parentActionId = null, childActionId = null) {
         super(
@@ -1140,7 +1736,7 @@ class ConsoleLogAction extends Action {
             parentActionId,
             childActionId,
             null,
-            "star",
+            "polymer",
         );
 
         this.consoleLogData = null;
@@ -1220,6 +1816,33 @@ class ConsoleLogAction extends Action {
         return instance;
     }
 
+    static async buildObjFromCode(parentActionId, data, map, cb, arg) {
+        if (map.has(parentActionId)) {
+            let parentAction = map.get(parentActionId);
+            if (Array.isArray(arg)) {
+                parentAction[arg[0]][arg[1]][arg[2]] = data.actionId;
+            } else {
+                parentAction[arg] = data.actionId;
+            }
+        }
+
+        let instance = new ConsoleLogAction(null);
+        instance.actionId = data.actionId;
+        // instance.actionText = data.actionText;
+        instance.actionName = data.actionName;
+        instance.actionType = data.actionType;
+        instance.parentActionId = data.parentActionId;
+        instance.childActionId = null;
+        instance.data = data.data;
+        // instance.icon = data.icon;
+        instance.consoleLogData = data.consoleLogData;
+        // instance.rightWrapperId = data.rightWrapperId;
+        // instance.dataForLoop = action.dataForLoop;
+        map.set(instance.actionId, instance);
+
+        await cb(instance.actionId, data.childAction, map, "childActionId");
+    }
+
     getObj() {
         return {
             actionId: this.actionId,
@@ -1295,8 +1918,37 @@ class ConsoleLogAction extends Action {
             return notify("Something went wrong!", "danger");
         }
     }
+
+    getWorflowCodeObj() {
+        return {
+            actionId: this.actionId,
+            // actionText: this.actionText,
+            actionName: this.actionName,
+            actionType: this.actionType,
+            parentActionId: null,
+            childAction: null,
+            data: this.data,
+            // icon: this.icon,
+            consoleLogData: this.consoleLogData,
+        };
+    }
+
+    buildWorkflowCode(parentActionId, data, arg, cb) {
+        let output;
+        if (Array.isArray(arg)) {
+            data[arg[0]][arg[1]][arg[2]] = this.getWorflowCodeObj();
+            output = data[arg[0]][arg[1]][arg[2]];
+        } else {
+            data[arg] = this.getWorflowCodeObj();
+            output = data[arg];
+        }
+
+        output.parentActionId = parentActionId;
+        cb(this.childActionId, this.actionId, output, "childAction");
+    }
 }
 
+/**Notification action */
 class NotificationAction extends Action {
     constructor(actionId, parentActionId = null, childActionId = null) {
         super(
@@ -1307,7 +1959,7 @@ class NotificationAction extends Action {
             parentActionId,
             childActionId,
             null,
-            "star",
+            "notifications",
         );
 
         this.notification = "🔥 New Notification Message!";
@@ -1413,6 +2065,33 @@ class NotificationAction extends Action {
         return instance;
     }
 
+    static async buildObjFromCode(parentActionId, data, map, cb, arg) {
+        if (map.has(parentActionId)) {
+            let parentAction = map.get(parentActionId);
+            if (Array.isArray(arg)) {
+                parentAction[arg[0]][arg[1]][arg[2]] = data.actionId;
+            } else {
+                parentAction[arg] = data.actionId;
+            }
+        }
+
+        let instance = new NotificationAction(null);
+        instance.actionId = data.actionId;
+        // instance.actionText = data.actionText;
+        instance.actionName = data.actionName;
+        instance.actionType = data.actionType;
+        instance.parentActionId = data.parentActionId;
+        instance.childActionId = null;
+        instance.data = data.data;
+        // instance.icon = data.icon;
+        // instance.consoleLogData = action.consoleLogData;
+        instance.notification = data.notification;
+        instance.type = data.type;
+        map.set(instance.actionId, instance);
+
+        await cb(instance.actionId, data.childAction, map, "childActionId");
+    }
+
     getObj() {
         return {
             actionId: this.actionId,
@@ -1482,8 +2161,38 @@ class NotificationAction extends Action {
         nextActions.push({ edge: this.childActionId, data: input });
         this.updateActionStatus("SUCCESS");
     }
+
+    getWorflowCodeObj() {
+        return {
+            actionId: this.actionId,
+            // actionText: this.actionText,
+            actionName: this.actionName,
+            actionType: this.actionType,
+            parentActionId: null,
+            childAction: null,
+            data: this.data,
+            // icon: this.icon,
+            notification: this.notification,
+            type: this.type,
+        };
+    }
+
+    buildWorkflowCode(parentActionId, data, arg, cb) {
+        let output;
+        if (Array.isArray(arg)) {
+            data[arg[0]][arg[1]][arg[2]] = this.getWorflowCodeObj();
+            output = data[arg[0]][arg[1]][arg[2]];
+        } else {
+            data[arg] = this.getWorflowCodeObj();
+            output = data[arg];
+        }
+
+        output.parentActionId = parentActionId;
+        cb(this.childActionId, this.actionId, output, "childAction");
+    }
 }
 
+/**webhook action */
 class WebhookAction extends Action {
     constructor(actionId, parentActionId = null, childActionId = null) {
         super(
@@ -1494,7 +2203,7 @@ class WebhookAction extends Action {
             parentActionId,
             childActionId,
             null,
-            "star",
+            "web",
         );
 
         this.url = "";
@@ -1589,6 +2298,33 @@ class WebhookAction extends Action {
         return instance;
     }
 
+    static async buildObjFromCode(parentActionId, data, map, cb, arg) {
+        if (map.has(parentActionId)) {
+            let parentAction = map.get(parentActionId);
+            if (Array.isArray(arg)) {
+                parentAction[arg[0]][arg[1]][arg[2]] = data.actionId;
+            } else {
+                parentAction[arg] = data.actionId;
+            }
+        }
+
+        let instance = new WebhookAction(null);
+        instance.actionId = data.actionId;
+        // instance.actionText = data.actionText;
+        instance.actionName = data.actionName;
+        instance.actionType = data.actionType;
+        instance.parentActionId = data.parentActionId;
+        instance.childActionId = null;
+        instance.data = data.data;
+        // instance.icon = data.icon;
+        // instance.consoleLogData = action.consoleLogData;
+        instance.url = data.url;
+        instance.method = data.method;
+        map.set(instance.actionId, instance);
+
+        await cb(instance.actionId, data.childAction, map, "childActionId");
+    }
+
     getObj() {
         return {
             actionId: this.actionId,
@@ -1672,8 +2408,38 @@ class WebhookAction extends Action {
             return;
         }
     }
+
+    getWorflowCodeObj() {
+        return {
+            actionId: this.actionId,
+            // actionText: this.actionText,
+            actionName: this.actionName,
+            actionType: this.actionType,
+            parentActionId: null,
+            childAction: null,
+            data: this.data,
+            // icon: this.icon,
+            url: this.url,
+            method: this.method,
+        };
+    }
+
+    buildWorkflowCode(parentActionId, data, arg, cb) {
+        let output;
+        if (Array.isArray(arg)) {
+            data[arg[0]][arg[1]][arg[2]] = this.getWorflowCodeObj();
+            output = data[arg[0]][arg[1]][arg[2]];
+        } else {
+            data[arg] = this.getWorflowCodeObj();
+            output = data[arg];
+        }
+
+        output.parentActionId = parentActionId;
+        cb(this.childActionId, this.actionId, output, "childAction");
+    }
 }
 
+/**code block action */
 class CodeBlockAction extends Action {
     constructor(actionId, parentActionId = null, childActionId = null) {
         super(
@@ -1684,10 +2450,11 @@ class CodeBlockAction extends Action {
             parentActionId,
             childActionId,
             null,
-            "star",
+            "function",
         );
 
         this.code = "";
+        this.context = {};
     }
 
     markupForMainAction() {
@@ -1761,7 +2528,35 @@ class CodeBlockAction extends Action {
         instance.data = action.data;
         instance.icon = action.icon;
         instance.code = action.code;
+        instance.context = action.context;
         return instance;
+    }
+
+    static async buildObjFromCode(parentActionId, data, map, cb, arg) {
+        if (map.has(parentActionId)) {
+            let parentAction = map.get(parentActionId);
+            if (Array.isArray(arg)) {
+                parentAction[arg[0]][arg[1]][arg[2]] = data.actionId;
+            } else {
+                parentAction[arg] = data.actionId;
+            }
+        }
+
+        let instance = new CodeBlockAction(null);
+        instance.actionId = data.actionId;
+        // instance.actionText = data.actionText;
+        instance.actionName = data.actionName;
+        instance.actionType = data.actionType;
+        instance.parentActionId = data.parentActionId;
+        instance.childActionId = null;
+        instance.data = data.data;
+        // instance.icon = data.icon;
+        // instance.consoleLogData = action.consoleLogData;
+        instance.code = data.code;
+        instance.context = data.context;
+        map.set(instance.actionId, instance);
+
+        await cb(instance.actionId, data.childAction, map, "childActionId");
     }
 
     getObj() {
@@ -1775,6 +2570,7 @@ class CodeBlockAction extends Action {
             data: this.data,
             icon: this.icon,
             code: this.code,
+            context: this.context,
         };
     }
 
@@ -1827,23 +2623,318 @@ class CodeBlockAction extends Action {
     }
 
     async getNextActions(input, nextActions) {
-        let code = this.code;
-        this.data = input;
-
         try {
-            const http = new HTTPRequest(null);
-            let { data } = await http.webhookRequest(url, method, this.data);
-            console.log(data);
+            let code = this.code;
+            let context = {};
+            for (const key in this.context) {
+                if (
+                    typeof eval(this.context[key].value) === "undefined" ||
+                    !eval(this.context[key].value)
+                ) {
+                    this.updateActionStatus("ERROR");
+                    notify("Pass parameter values valid!", "danger");
+                    this.data = "ERROR ACCURED!";
+                    return;
+                }
+                context[this.context[key].key] = eval(this.context[key].value);
+            }
+
+            const data = await axios.post("/api/compiler", { code, context });
             this.data = data;
             this.updateActionStatus("SUCCESS");
-            nextActions.push({ edge: this.childActionId, input: data });
+            nextActions.push({ edge: this.childActionId, data: data.data });
+        } catch (error) {
+            console.log(error);
+            notify("Something Went Wrong!", "danger");
+            action.data = error;
+            return;
+        }
+    }
+
+    getWorflowCodeObj() {
+        return {
+            actionId: this.actionId,
+            // actionText: this.actionText,
+            actionName: this.actionName,
+            actionType: this.actionType,
+            parentActionId: null,
+            childAction: null,
+            data: this.data,
+            // icon: this.icon,
+            code: this.code,
+            context: this.context,
+        };
+    }
+
+    buildWorkflowCode(parentActionId, data, arg, cb) {
+        let output;
+        if (Array.isArray(arg)) {
+            data[arg[0]][arg[1]][arg[2]] = this.getWorflowCodeObj();
+            output = data[arg[0]][arg[1]][arg[2]];
+        } else {
+            data[arg] = this.getWorflowCodeObj();
+            output = data[arg];
+        }
+
+        output.parentActionId = parentActionId;
+        cb(this.childActionId, this.actionId, output, "childAction");
+    }
+}
+
+/** send email action */
+class SendEmailAction extends Action {
+    constructor(actionId, parentActionId = null, childActionId = null) {
+        super(
+            actionId,
+            "Send Email",
+            "New Send Email Action",
+            "SEND_EMAIL",
+            parentActionId,
+            childActionId,
+            null,
+            "email",
+        );
+
+        this.to = "";
+        this.from = "";
+        this.subject = "";
+        this.html = "";
+    }
+
+    markupForMainAction() {
+        return `
+        <div id="${this.actionId}">
+            <div>
+                <div class="flex flex-col justify-start flex-nowrap group">
+                    <div class="flex relative self-center flex-col items-center">
+                        <div>${this.markupForMainWrapper()}</div>
+                    </div>
+                </div>
+                ${this.markupForTailBtn(null)}
+            </div>
+        </div>
+    `;
+    }
+
+    createActionForm() {
+        return `
+        <div id="formWrapper"> 
+            <h1 class="border-b border-neutral-500 flex items-center justify-center text-primary py-4">
+                ${this.actionText}
+            </h1>
+            <form action="#" class="flex items-center p-4 mt-8 flex-col">
+                ${this.markupForInputBox(
+                    "actionName",
+                    this.actionName,
+                    "Action Name",
+                    "Enter Action Name",
+                )}
+                ${this.markupForInputBox("from", this.from, "From")}
+                ${this.markupForInputBox("to", this.to, "To")}
+                ${this.markupForInputBox("subject", this.subject, "Subject")}
+                ${this.markupForInputBox("html", this.subject, "Html Content")}
+            </form>
+            <button
+                id="debug"
+                class="btn bg-boxColor hidden items-center justify-center hover:bg-neutral-600 mb-4 ml-4" 
+                onclick="debugWorkflow(${this.actionId})"
+            >
+                <span> Debug </span>
+                <span class="ml-1 text-[10px] text-pure material-symbols-outlined">
+                    bug_report
+                </span>
+            </button>
+        </div>
+    `;
+    }
+
+    saveActionForm() {
+        let actionName = document.getElementById("actionName").value;
+        let subject = document.getElementById("subject").value;
+        let html = document.getElementById("html").value;
+        let to = document.getElementById("to").value;
+        let from = document.getElementById("from").value;
+
+        this.actionName = actionName === "" ? this.actionName : actionName;
+        this.subject = subject === "" ? this.subject : subject;
+        this.html = html === "" ? this.html : html;
+        this.to = to === "" ? this.to : to;
+        this.from = from === "" ? this.from : from;
+
+        document.querySelector(`[actionName="${this.actionId}"]`).innerHTML =
+            this.actionName;
+    }
+
+    static getIntance(action) {
+        let instance = new SendEmailAction(null);
+        instance.actionId = action.actionId;
+        instance.actionText = action.actionText;
+        instance.actionName = action.actionName;
+        instance.actionType = action.actionType;
+        instance.parentActionId = action.parentActionId;
+        instance.childActionId = action.childActionId;
+        instance.data = action.data;
+        instance.icon = action.icon;
+        instance.to = action.to;
+        instance.from = action.from;
+        instance.subject = action.subject;
+        instance.html = action.html;
+        return instance;
+    }
+
+    static async buildObjFromCode(parentActionId, data, map, cb, arg) {
+        if (map.has(parentActionId)) {
+            let parentAction = map.get(parentActionId);
+            if (Array.isArray(arg)) {
+                parentAction[arg[0]][arg[1]][arg[2]] = data.actionId;
+            } else {
+                parentAction[arg] = data.actionId;
+            }
+        }
+
+        let instance = new SendEmailAction(null);
+        instance.actionId = data.actionId;
+        // instance.actionText = data.actionText;
+        instance.actionName = data.actionName;
+        instance.actionType = data.actionType;
+        instance.parentActionId = data.parentActionId;
+        instance.childActionId = null;
+        instance.data = data.data;
+        // instance.icon = data.icon;
+        instance.to = data.to;
+        instance.from = data.from;
+        instance.subject = data.subject;
+        instance.html = data.html;
+        map.set(instance.actionId, instance);
+
+        await cb(instance.actionId, data.childAction, map, "childActionId");
+    }
+
+    getObj() {
+        return {
+            actionId: this.actionId,
+            actionText: this.actionText,
+            actionName: this.actionName,
+            actionType: this.actionType,
+            parentActionId: this.parentActionId,
+            childActionId: this.childActionId,
+            data: this.data,
+            icon: this.icon,
+            to: this.to,
+            from: this.from,
+            subject: this.subject,
+            html: this.html,
+        };
+    }
+
+    markupForDebugWorkflow() {
+        return `
+        <div class="w-[650px]">
+        <div class="flex items-center justify-center flex-col container text-pure">
+            <div class="p-4 border border-gray-500 w-[100%] h-[500px] rounded-md">
+                <div class="border-b border-gray-500 grid grid-cols-2 items-center justify-center">
+                    <div class="p-4 border-r border-gray-500 flex flex-col">
+                        <span class="text-primary">Action Name </span>
+                        <span class="text-sm">${this.actionName}</span>
+                    </div>
+                    <div class="p-4 flex flex-col">
+                        <span class="text-primary">Condition </span>
+                        <span class="text-sm">
+                            ${this.condition && this.condition}
+                        </span>
+                    </div>
+                </div>
+                <div class="border-b border-gray-500 grid grid-cols-2 items-center justify-center">
+                    <div class="p-4 border-r border-gray-500 flex flex-col">
+                        <span class="text-primary">True Condition Box Id</span>
+                        <span class="text-sm">${this.trueActionId}</span>
+                    </div>
+                    <div class="p-4 flex flex-col">
+                        <span class="text-primary">False Condition Box Id </span>
+                        <span class="text-sm">${this.falseActionId}</span>
+                    </div>
+                </div>
+                <div>
+                    <div class="p-2 flex flex-col">
+                        <span class="text-primary mb-2">Data</span>
+                        <textarea class="p-3 text-sm bg-dark border border-gray-500 rounded-md outline-none" rows="12">${
+                            this.data &&
+                            JSON.stringify(this.data).slice(
+                                0,
+                                Math.min(
+                                    JSON.stringify(this.data).length,
+                                    1000,
+                                ),
+                            )
+                        }...</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    `;
+    }
+
+    async getNextActions(input, nextActions) {
+        let html = this.html,
+            to = this.to,
+            from = this.from,
+            subject = this.subject;
+
+        try {
+            const { data } = await axios.post("/api/send-email", {
+                html,
+                to,
+                from,
+                subject,
+            });
+
+            if (!data.ok) {
+                this.updateActionStatus("ERROR");
+                notify("Something went wrong!", "danger");
+                this.data = "ERROR ACCURED!";
+                return;
+            }
+
+            this.data = input;
+            nextActions.push({ edge: this.childActionId, data: input });
         } catch (error) {
             console.log(error);
             this.updateActionStatus("ERROR");
             notify("Something went wrong!", "danger");
             this.data = "ERROR ACCURED!";
-            return;
         }
+    }
+
+    getWorflowCodeObj() {
+        return {
+            actionId: this.actionId,
+            // actionText: this.actionText,
+            actionName: this.actionName,
+            actionType: this.actionType,
+            parentAction: null,
+            childAction: null,
+            data: this.data,
+            // icon: this.icon,
+            to: this.to,
+            from: this.from,
+            subject: this.subject,
+            html: this.html,
+        };
+    }
+
+    buildWorkflowCode(parentActionId, data, arg, cb) {
+        let output;
+        if (Array.isArray(arg)) {
+            data[arg[0]][arg[1]][arg[2]] = this.getWorflowCodeObj();
+            output = data[arg[0]][arg[1]][arg[2]];
+        } else {
+            data[arg] = this.getWorflowCodeObj();
+            output = data[arg];
+        }
+
+        output.parentActionId = parentActionId;
+        cb(this.childActionId, this.actionId, output, "childAction");
     }
 }
 

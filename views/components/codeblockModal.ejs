@@ -1,50 +1,24 @@
-<div
-    id="codeblock"
-    class="fixed top-0 left-0 bg-zinc-900/90 items-center flex justify-center h-[100%] w-[100%] z-10"
->
-    <div
-        class="relative bg-dark w-[700px] max-w-[90%] p-8 rounded-md flex flex-col items-center justify-center"
-    >
+<div id="codeblockModal" class="fixed top-0 left-0 bg-zinc-900/90 items-center flex justify-center min-h-screen w-screen z-20">
+    <div class="relative bg-dark w-[900px] max-w-[90%] p-8 rounded-md flex flex-col items-center justify-center">
         <div class="p-6 rounded-lg shadow-md bg-dark text-pure">
             <div class="inputBoxSecondary">
-                <input
-                    class="placeholder-gray-500 placeholder-opacity-30"
-                    name="actionName"
-                    type="text"
-                    id="actionName_"
-                    required
-                    placeholder="Enter Action Name"
-                />
+                <input class="placeholder-gray-500 placeholder-opacity-30" name="actionName" type="text" id="actionName_" required placeholder="Enter Action Name"/>
                 <label for="actionName_">Action Name</label>
             </div>
-            <div>
-                <div
-                    class="text-info font-extralight tracking-[1px] ml-2 text-[14px]"
-                >
+            <div class="mt-4">
+                <div class="text-gray font-extralight tracking-[1px] ml-2 text-[14px]">
                     Parameters
                 </div>
                 <div id="parameterOpsBox"></div>
-                <button
-                    class="btn bg-boxColor flex items-center justify-cneter hover:bg-neutral-600 mb-8 mt-2"
-                    onclick="addParameterOptions()"
-                >
+                <button class="btn bg-neutral-500 flex items-center justify-cneter hover:bg-boxColor mb-8 mt-2" onclick="addParameterOptions()">
                     <span> Add </span>
-                    <span
-                        class="ml-1 text-[14px] text-pure material-symbols-outlined"
-                        >add</span
-                    >
+                    <span class="ml-1 text-[14px] text-pure material-symbols-outlined">add</span>
                 </button>
             </div>
             <div class="codeblockContainer mb-3">
-                <textarea
-                    class="bg-boxColor outline-none p-2 rounded-lg shadow-md"
-                    name="code"
-                    id="editor"
-                    cols="151"
-                    rows="10"
-                ></textarea>
+                <textarea class="bg-boxColor outline-none p-2 rounded-lg shadow-md" name="code" id="editor" cols="151" rows="10" ></textarea>
             </div>
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between mt-4">
                 <button class="btn-secondary" onclick="closeCodeblockForm()">
                     Cancel
                 </button>
