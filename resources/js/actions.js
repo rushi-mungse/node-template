@@ -318,6 +318,40 @@ class IfConditionAction extends Action {
 
         this.updateActionStatus("SUCCESS");
     }
+
+    getWorflowCodeObj() {
+        return {
+            actionId: this.actionId,
+            // actionText: this.actionText,
+            actionName: this.actionName,
+            actionType: this.actionType,
+            parentActionId: this.parentActionId,
+            childAction: null, // modify
+            data: this.data,
+            // icon: this.icon,
+            trueAction: null, // modify
+            falseAction: null, // modify
+            condition: this.condition,
+            // trueWrapperId: this.trueWrapperId,
+            // falseWrapperId: this.falseWrapperId,
+        };
+    }
+
+    buildWorkflowCode(parentActionId, data, arg, cb) {
+        let output;
+        if (Array.isArray(arg)) {
+            data[arg[0]][arg[1]][arg[2]] = this.getWorflowCodeObj();
+            output = data[arg[0]][arg[1]][arg[2]];
+        } else {
+            data[arg] = this.getWorflowCodeObj();
+            output = data[arg];
+        }
+
+        output.parentActionId = parentActionId;
+        cb(this.trueActionId, this.actionId, output, "trueAction");
+        cb(this.falseActionId, this.actionId, output, "falseAction");
+        cb(this.childActionId, this.actionId, output, "childAction");
+    }
 }
 
 class SwitchAction extends Action {
@@ -696,6 +730,61 @@ class SwitchAction extends Action {
 
         this.updateActionStatus("SUCCESS");
     }
+
+    getWorflowCodeObj() {
+        let newConditions = {},
+            cnt = 1;
+        for (let key in this.conditions) {
+            newConditions[`Case_${cnt}`] = {
+                condition: this.conditions[key].condition,
+                childAction: null,
+            };
+            cnt++;
+        }
+
+        return {
+            actionId: this.actionId,
+            // actionText: this.actionText,
+            actionName: this.actionName,
+            actionType: this.actionType,
+            parentActionId: null,
+            childAction: null, // modify
+            data: this.data,
+            // icon: this.icon,
+            conditions: newConditions, // modify
+            leftAction: null, // modify
+            // leftWrapperId: this.leftWrapperId,
+            leftCondition: this.leftCondition,
+            // defaultWrapperId: this.defaultWrapperId,
+            defaultAction: null, // modify
+        };
+    }
+
+    buildWorkflowCode(parentActionId, data, arg, cb) {
+        let output;
+        if (Array.isArray(arg)) {
+            data[arg[0]][arg[1]][arg[2]] = this.getWorflowCodeObj();
+            output = data[arg[0]][arg[1]][arg[2]];
+        } else {
+            data[arg] = this.getWorflowCodeObj();
+            output = data[arg];
+        }
+
+        output.parentActionId = parentActionId;
+
+        cb(this.leftActionId, this.actionId, output, "leftAction");
+        let cnt = 1;
+        for (let id in this.conditions) {
+            cb(this.conditions[id].childActionId, this.actionId, output, [
+                "conditions",
+                `Case_${cnt}`,
+                "childAction",
+            ]);
+            cnt++;
+        }
+        cb(this.defaultActionId, this.actionId, output, "defaultAction");
+        cb(this.childActionId, this.actionId, output, "childAction");
+    }
 }
 
 class ForLoopAction extends Action {
@@ -828,9 +917,8 @@ class ForLoopAction extends Action {
         this.endValue = endValue === "" ? this.endValue : endValue;
         this.step = step === "" ? this.step : step;
 
-        document.querySelector(
-            `[data-actionName="${this.actionId}"]`,
-        ).innerHTML = this.actionName;
+        document.querySelector(`[actionName="${this.actionId}"]`).innerHTML =
+            this.actionName;
 
         document.querySelector(`[for-loop="${this.actionId}"]`).innerHTML =
             `Loop from ${this.startValue} to ${this.endValue} with step ${this.step}`;
@@ -925,6 +1013,39 @@ class ForLoopAction extends Action {
         nextActions.push({ edge: this.childActionId, data: input });
         this.data = input;
         this.updateActionStatus("SUCCESS");
+    }
+
+    getWorflowCodeObj() {
+        return {
+            actionId: this.actionId,
+            // actionText: this.actionText,
+            actionName: this.actionName,
+            actionType: this.actionType,
+            parentActionId: null,
+            childAction: null,
+            data: this.data,
+            // icon: this.icon,
+            rightAction: null,
+            // rightWrapperId: this.rightWrapperId,
+            step: this.step,
+            endValue: this.endValue,
+            startValue: this.startValue,
+        };
+    }
+
+    buildWorkflowCode(parentActionId, data, arg, cb) {
+        let output;
+        if (Array.isArray(arg)) {
+            data[arg[0]][arg[1]][arg[2]] = this.getWorflowCodeObj();
+            output = data[arg[0]][arg[1]][arg[2]];
+        } else {
+            data[arg] = this.getWorflowCodeObj();
+            output = data[arg];
+        }
+
+        output.parentActionId = parentActionId;
+        cb(this.rightActionId, this.actionId, output, "rightAction");
+        cb(this.childActionId, this.actionId, output, "childAction");
     }
 }
 
@@ -1037,9 +1158,8 @@ class LoopDataAction extends Action {
         this.actionName = actionName === "" ? this.actionName : actionName;
         this.dataForLoop = dataForLoop === "" ? this.dataForLoop : dataForLoop;
 
-        document.querySelector(
-            `[data-actionName="${this.actionId}"]`,
-        ).innerHTML = this.actionName;
+        document.querySelector(`[actionName="${this.actionId}"]`).innerHTML =
+            this.actionName;
     }
 
     static getIntance(action) {
@@ -1127,6 +1247,37 @@ class LoopDataAction extends Action {
         nextActions.push({ edge: this.childActionId, data: input });
         this.data = input;
         this.updateActionStatus("SUCCESS");
+    }
+
+    getWorflowCodeObj() {
+        return {
+            actionId: this.actionId,
+            // actionText: this.actionText,
+            actionName: this.actionName,
+            actionType: this.actionType,
+            parentActionId: null,
+            childAction: null,
+            data: this.data,
+            // icon: this.icon,
+            rightAction: null,
+            // rightWrapperId: this.rightWrapperId,
+            dataForLoop: this.dataForLoop,
+        };
+    }
+
+    buildWorkflowCode(parentActionId, data, arg, cb) {
+        let output;
+        if (Array.isArray(arg)) {
+            data[arg[0]][arg[1]][arg[2]] = this.getWorflowCodeObj();
+            output = data[arg[0]][arg[1]][arg[2]];
+        } else {
+            data[arg] = this.getWorflowCodeObj();
+            output = data[arg];
+        }
+
+        output.parentActionId = parentActionId;
+        cb(this.rightActionId, this.actionId, output, "rightAction");
+        cb(this.childActionId, this.actionId, output, "childAction");
     }
 }
 
@@ -1294,6 +1445,34 @@ class ConsoleLogAction extends Action {
             console.log(error);
             return notify("Something went wrong!", "danger");
         }
+    }
+
+    getWorflowCodeObj() {
+        return {
+            actionId: this.actionId,
+            // actionText: this.actionText,
+            actionName: this.actionName,
+            actionType: this.actionType,
+            parentActionId: null,
+            childAction: null,
+            data: this.data,
+            // icon: this.icon,
+            consoleLogData: this.consoleLogData,
+        };
+    }
+
+    buildWorkflowCode(parentActionId, data, arg, cb) {
+        let output;
+        if (Array.isArray(arg)) {
+            data[arg[0]][arg[1]][arg[2]] = this.getWorflowCodeObj();
+            output = data[arg[0]][arg[1]][arg[2]];
+        } else {
+            data[arg] = this.getWorflowCodeObj();
+            output = data[arg];
+        }
+
+        output.parentActionId = parentActionId;
+        cb(this.childActionId, this.actionId, output, "childAction");
     }
 }
 
@@ -1481,6 +1660,35 @@ class NotificationAction extends Action {
         this.data = input;
         nextActions.push({ edge: this.childActionId, data: input });
         this.updateActionStatus("SUCCESS");
+    }
+
+    getWorflowCodeObj() {
+        return {
+            actionId: this.actionId,
+            // actionText: this.actionText,
+            actionName: this.actionName,
+            actionType: this.actionType,
+            parentActionId: null,
+            childAction: null,
+            data: this.data,
+            // icon: this.icon,
+            notification: this.notification,
+            type: this.type,
+        };
+    }
+
+    buildWorkflowCode(parentActionId, data, arg, cb) {
+        let output;
+        if (Array.isArray(arg)) {
+            data[arg[0]][arg[1]][arg[2]] = this.getWorflowCodeObj();
+            output = data[arg[0]][arg[1]][arg[2]];
+        } else {
+            data[arg] = this.getWorflowCodeObj();
+            output = data[arg];
+        }
+
+        output.parentActionId = parentActionId;
+        cb(this.childActionId, this.actionId, output, "childAction");
     }
 }
 
@@ -1672,6 +1880,35 @@ class WebhookAction extends Action {
             return;
         }
     }
+
+    getWorflowCodeObj() {
+        return {
+            actionId: this.actionId,
+            // actionText: this.actionText,
+            actionName: this.actionName,
+            actionType: this.actionType,
+            parentActionId: null,
+            childAction: null,
+            data: this.data,
+            // icon: this.icon,
+            url: this.url,
+            method: this.method,
+        };
+    }
+
+    buildWorkflowCode(parentActionId, data, arg, cb) {
+        let output;
+        if (Array.isArray(arg)) {
+            data[arg[0]][arg[1]][arg[2]] = this.getWorflowCodeObj();
+            output = data[arg[0]][arg[1]][arg[2]];
+        } else {
+            data[arg] = this.getWorflowCodeObj();
+            output = data[arg];
+        }
+
+        output.parentActionId = parentActionId;
+        cb(this.childActionId, this.actionId, output, "childAction");
+    }
 }
 
 class CodeBlockAction extends Action {
@@ -1856,6 +2093,35 @@ class CodeBlockAction extends Action {
             action.data = error;
             return;
         }
+    }
+
+    getWorflowCodeObj() {
+        return {
+            actionId: this.actionId,
+            // actionText: this.actionText,
+            actionName: this.actionName,
+            actionType: this.actionType,
+            parentActionId: null,
+            childAction: null,
+            data: this.data,
+            // icon: this.icon,
+            code: this.code,
+            context: this.context,
+        };
+    }
+
+    buildWorkflowCode(parentActionId, data, arg, cb) {
+        let output;
+        if (Array.isArray(arg)) {
+            data[arg[0]][arg[1]][arg[2]] = this.getWorflowCodeObj();
+            output = data[arg[0]][arg[1]][arg[2]];
+        } else {
+            data[arg] = this.getWorflowCodeObj();
+            output = data[arg];
+        }
+
+        output.parentActionId = parentActionId;
+        cb(this.childActionId, this.actionId, output, "childAction");
     }
 }
 
@@ -2053,6 +2319,37 @@ class SendEmailAction extends Action {
             notify("Something went wrong!", "danger");
             this.data = "ERROR ACCURED!";
         }
+    }
+
+    getWorflowCodeObj() {
+        return {
+            actionId: this.actionId,
+            // actionText: this.actionText,
+            actionName: this.actionName,
+            actionType: this.actionType,
+            parentAction: null,
+            childAction: null,
+            data: this.data,
+            // icon: this.icon,
+            to: this.to,
+            from: this.from,
+            subject: this.subject,
+            html: this.html,
+        };
+    }
+
+    buildWorkflowCode(parentActionId, data, arg, cb) {
+        let output;
+        if (Array.isArray(arg)) {
+            data[arg[0]][arg[1]][arg[2]] = this.getWorflowCodeObj();
+            output = data[arg[0]][arg[1]][arg[2]];
+        } else {
+            data[arg] = this.getWorflowCodeObj();
+            output = data[arg];
+        }
+
+        output.parentActionId = parentActionId;
+        cb(this.childActionId, this.actionId, output, "childAction");
     }
 }
 

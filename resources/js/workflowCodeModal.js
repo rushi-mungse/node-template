@@ -17,16 +17,24 @@ async function formateJson() {
     }
 }
 
+function makeObjectFromData(curActionId, parentActionId, data, arg) {
+    if (!ACTIONS.has(curActionId)) return;
+    let curAction = ACTIONS.get(curActionId);
+    curAction.buildWorkflowCode(parentActionId, data, arg, makeObjectFromData);
+}
+
 async function openWorkflowCodeModal() {
     let data = {
         uid: UID,
         workflowName: WORKFLOW_NAME,
         createdAt: CREATED_AT,
         updatedAt: firebase.firestore.Timestamp.fromDate(new Date()),
-        root: ROOT_ACTION.actionId,
+        // root: ROOT_ACTION.actionId,
     };
 
-    for (let [key, action] of ACTIONS) data[key] = action.getObj();
+    // for (let [key, action] of ACTIONS) data[key] = action.getObj();
+
+    makeObjectFromData(ROOT_ACTION.actionId, null, data, "root");
 
     try {
         const format = await JSON.stringify(data, null, 2);
@@ -53,5 +61,14 @@ document.addEventListener("keydown", function (e) {
 
 function saveWorkflowCodeModal() {
     const data = codemirror.getValue();
-    console.log(JSON.parse(data));
+    try {
+        const obj = JSON.parse(data);
+        console.log(obj);
+    } catch (error) {
+        console.log(error);
+        return notiry(
+            "Something missing properties or syntax error in code!",
+            "danger",
+        );
+    }
 }
