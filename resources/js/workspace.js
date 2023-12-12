@@ -13,10 +13,6 @@ let actionAndControlsFormWrapper = document.getElementById(
     "actionAndControlsFormWrapper",
 );
 
-// ROOT_ACTION = new IfConditionAction(createId());
-// ACTIONS.set(ROOT_ACTION.actionId, ROOT_ACTION);
-// workspace.innerHTML = ROOT_ACTION.markupForMainAction();
-
 let WORKFLOW_NAME,
     UID,
     ROOT,
@@ -36,7 +32,6 @@ function dropAction(parentEl, wrapperEl) {
         parentChildId = null;
 
     if (wrapperEl === null) {
-        // build connection in three action [parentEl, curActionEl, childActionEl]
         parentChildId = parentAction.childActionId;
         parentAction.childActionId = curAction.actionId;
         curAction.parentActionId = parentId;
@@ -250,24 +245,23 @@ async function init() {
     });
 }
 
-function buildWorkflow(data) {
+function buildWorkflow(data, flag = true) {
     document.getElementById("workflowNameWrapper").style.display = "flex";
     document.getElementById("workflowName").innerText = data.workflowName;
-    for (let key in data)
-        if (
-            typeof data[key] === "object" &&
-            data[key].hasOwnProperty("actionId")
-        )
-            ACTIONS.set(data[key].actionId, createInstance(data[key]));
+    if (flag)
+        for (let key in data)
+            if (
+                typeof data[key] === "object" &&
+                data[key].hasOwnProperty("actionId")
+            )
+                ACTIONS.set(data[key].actionId, createInstance(data[key]));
+
     ROOT_ACTION = ACTIONS.get(ROOT);
     workspace.innerHTML = ROOT_ACTION.markupForMainAction();
 
-    dfsForBuildWorkflow(ROOT_ACTION.trueActionId, ROOT_ACTION.trueWrapperId);
-    dfsForBuildWorkflow(ROOT_ACTION.falseActionId, ROOT_ACTION.falseWrapperId);
     dfsForBuildWorkflow(ROOT_ACTION.childActionId, ROOT_ACTION.actionId);
 }
 
-//TODO:
 function dfsForBuildWorkflow(curActionId, wrapperActionId) {
     if (!ACTIONS.has(curActionId)) return;
 

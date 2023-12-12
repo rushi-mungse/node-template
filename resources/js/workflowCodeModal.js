@@ -59,16 +59,110 @@ document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") closeDebugWorkflowModal();
 });
 
-function saveWorkflowCodeModal() {
+async function saveWorkflowCodeModal() {
     const data = codemirror.getValue();
     try {
-        const obj = JSON.parse(data);
-        console.log(obj);
+        const obj = await JSON.parse(data);
+        ACTIONS.clear();
+        await buildWorkflowUsingCode(null, obj.root, ACTIONS, "childActionId");
+        ROOT = obj.root.actionId;
+        console.log(ACTIONS);
+        buildWorkflow({ workflowName: WORKFLOW_NAME }, false);
     } catch (error) {
         console.log(error);
-        return notiry(
+        notify(
             "Something missing properties or syntax error in code!",
             "danger",
         );
+    }
+}
+
+async function buildWorkflowUsingCode(parentActionId, data, map, arg) {
+    if (!data) return;
+    try {
+        if (data.actionType === "HTTP_REQUEST") {
+            await HTTPRequestAction.buildObjFromCode(
+                parentActionId,
+                data,
+                map,
+                buildWorkflowUsingCode,
+                arg,
+            );
+        } else if (data.actionType === "SWITCH") {
+            await SwitchAction.buildObjFromCode(
+                parentActionId,
+                data,
+                map,
+                buildWorkflowUsingCode,
+                arg,
+            );
+        } else if (data.actionType === "IF_CONDITION") {
+            await IfConditionAction.buildObjFromCode(
+                parentActionId,
+                data,
+                map,
+                buildWorkflowUsingCode,
+                arg,
+            );
+        } else if (data.actionType === "FOR_LOOP") {
+            await ForLoopAction.buildObjFromCode(
+                parentActionId,
+                data,
+                map,
+                buildWorkflowUsingCode,
+                arg,
+            );
+        } else if (data.actionType === "LOOP_DATA") {
+            await LoopDataAction.buildObjFromCode(
+                parentActionId,
+                data,
+                map,
+                buildWorkflowUsingCode,
+                arg,
+            );
+        } else if (data.actionType === "NOTIFICATION") {
+            await NotificationAction.buildObjFromCode(
+                parentActionId,
+                data,
+                map,
+                buildWorkflowUsingCode,
+                arg,
+            );
+        } else if (data.actionType === "CONSOLE_LOG") {
+            await ConsoleLogAction.buildObjFromCode(
+                parentActionId,
+                data,
+                map,
+                buildWorkflowUsingCode,
+                arg,
+            );
+        } else if (data.actionType === "CODEBLOCK") {
+            await CodeBlockAction.buildObjFromCode(
+                parentActionId,
+                data,
+                map,
+                buildWorkflowUsingCode,
+                arg,
+            );
+        } else if (data.actionType === "WEBHOOK") {
+            await WebhookAction.buildObjFromCode(
+                parentActionId,
+                data,
+                map,
+                buildWorkflowUsingCode,
+                arg,
+            );
+        } else if (data.actionType === "SEND_EMAIL") {
+            await SendEmailAction.buildObjFromCode(
+                parentActionId,
+                data,
+                map,
+                buildWorkflowUsingCode,
+                arg,
+            );
+        }
+    } catch (error) {
+        console.log(error);
+        notify("Something went wrong with workflow code!", "danger");
     }
 }

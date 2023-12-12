@@ -1,3 +1,4 @@
+/* Status object for update action status with icon and color */
 const STATUS = {
     ERROR: {
         icon: "xmark",
@@ -13,6 +14,7 @@ const STATUS = {
     },
 };
 
+/* Main action super class*/
 class Action {
     constructor(
         actionId,
@@ -95,6 +97,308 @@ class Action {
     }
 }
 
+/** Http Reqest action */
+class HTTPRequestAction extends Action {
+    constructor(actionId, parentActionId = null, childActionId = null) {
+        super(
+            actionId,
+            "HTTP Request",
+            "New Http Request Action",
+            "HTTP_REQUEST",
+            parentActionId,
+            childActionId,
+            null,
+            "swap_horiz",
+        );
+
+        this.url = "https://jsonplaceholder.typicode.com/todos";
+        this.method = "GET";
+        this.authenticationType = "none";
+        this.auth = false;
+        this.username = null;
+        this.password = null;
+        this.token = null;
+        this.bodyType = null;
+        this.body = null;
+        this.headers = {};
+    }
+
+    markupForMainAction() {
+        return `
+        <div id="${this.actionId}">
+            <div>
+                <div class="flex flex-col justify-start flex-nowrap group">
+                    <div class="flex relative self-center flex-col items-center">
+                        <div>${this.markupForMainWrapper()}</div>
+                    </div>
+                </div>
+                ${this.markupForTailBtn(null)}
+            </div>
+        </div>
+    `;
+    }
+
+    createActionForm() {
+        return `
+        <div id="formWrapper"> 
+            <h1 class="border-b border-neutral-500 flex items-center justify-center text-primary py-4">
+                ${this.actionText}
+            </h1>
+            <form action="#" class="flex items-center p-4 mt-8 flex-col">
+                ${this.markupForInputBox(
+                    "actionName",
+                    this.actionName,
+                    "Action Name",
+                    "Enter Action Name",
+                )}
+                ${this.#createSelectInputBox()}
+                ${this.markupForInputBox("url", this.url, "API URL")}
+            </form>
+            <div class="flex items-center justify-between">
+                <button class="btn-primary flex items-center justify-center hover:bg-blue-700 mb-4 ml-4" onclick="openConfigurationForm(${
+                    this.actionId
+                })"> 
+                    <span class="inline-block mr-2 text-[10px] text-pure material-symbols-outlined">settings</span>
+                    <span> Configuration </span>
+                </button> 
+                <button
+                    id="debug"
+                    class="btn bg-boxColor hidden items-center justify-center hover:bg-neutral-600 mb-4 ml-4" 
+                    onclick="debugWorkflow(${this.actionId})"
+                >
+                    <span> Debug </span>
+                    <span class="ml-1 text-[10px] text-pure material-symbols-outlined">
+                        bug_report
+                    </span>
+                </button>
+            </div>
+        </div>
+    `;
+    }
+
+    #createSelectInputBox() {
+        return `
+            <div class="inputBox mb-6">
+                <select id="method" name="method">
+                    <option value="GET" ${
+                        this.method === "GET" ? "selected" : ""
+                    }>GET</option>
+                    <option value="POST" ${
+                        this.method === "POST" ? "selected" : ""
+                    }>POST</option>
+                    <option value="DELETE" ${
+                        this.method === "DELETE" ? "selected" : ""
+                    }>DELETE</option>
+                    <option value="PUT" ${
+                        this.method === "PUT" ? "selected" : ""
+                    }>PUT</option>
+                    <option value="PATCH" ${
+                        this.method === "PATCH" ? "selected" : ""
+                    }>PATCH</option>
+                </select>
+                <label for="method">Select Method</label>
+            </div>
+        `;
+    }
+
+    saveActionForm() {
+        let actionName = document.getElementById("actionName").value;
+        let method = document.getElementById("method").value;
+        let url = document.getElementById("url").value;
+
+        this.actionName = actionName === "" ? this.actionName : actionName;
+        this.method = method === "" ? this.method : method;
+        this.url = url === "" ? this.url : url;
+
+        document.querySelector(`[actionName="${this.actionId}"]`).innerHTML =
+            this.actionName;
+    }
+
+    static getIntance(action) {
+        let instance = new HTTPRequestAction(null);
+        instance.actionId = action.actionId;
+        instance.actionText = action.actionText;
+        instance.actionName = action.actionName;
+        instance.actionType = action.actionType;
+        instance.parentActionId = action.parentActionId;
+        instance.childActionId = action.childActionId;
+        instance.data = action.data;
+        instance.icon = action.icon;
+        instance.url = action.url;
+        instance.method = action.method;
+        instance.authenticationType = action.authenticationType;
+        instance.auth = action.auth;
+        instance.username = action.username;
+        instance.password = action.password;
+        instance.token = action.token;
+        instance.bodyType = action.bodyType;
+        instance.body = action.body;
+        instance.headers = action.headers;
+
+        return instance;
+    }
+
+    static async buildObjFromCode(parentActionId, data, map, cb, arg) {
+        if (map.has(parentActionId)) {
+            let parentAction = map.get(parentActionId);
+            if (Array.isArray(arg)) {
+                parentAction[arg[0]][arg[1]][arg[2]] = data.actionId;
+            } else {
+                parentAction[arg] = data.actionId;
+            }
+        }
+
+        let instance = new HTTPRequestAction(null);
+        instance.actionId = data.actionId;
+        // instance.actionText = data.actionText;
+        instance.actionName = data.actionName;
+        instance.actionType = data.actionType;
+        instance.parentActionId = parentActionId;
+        instance.childActionId = null;
+        instance.data = data.data;
+        // instance.icon = data.icon;
+        instance.url = data.url;
+        instance.method = data.method;
+        instance.authenticationType = data.authenticationType;
+        instance.auth = data.auth;
+        instance.username = data.username;
+        instance.password = data.password;
+        instance.token = data.token;
+        instance.bodyType = data.bodyType;
+        instance.body = data.body;
+        instance.headers = data.headers;
+        map.set(instance.actionId, instance);
+
+        await cb(instance.actionId, data.childAction, map, "childActionId");
+    }
+
+    getObj() {
+        return {
+            actionId: this.actionId,
+            actionText: this.actionText,
+            actionName: this.actionName,
+            actionType: this.actionType,
+            parentActionId: this.parentActionId,
+            childActionId: this.childActionId,
+            data: this.data,
+            icon: this.icon,
+            method: this.method,
+            authenticationType: this.authenticationType,
+            auth: this.auth,
+            username: this.username,
+            password: this.password,
+            token: this.token,
+            bodyType: this.bodyType,
+            body: this.body,
+            headers: this.headers,
+            url: this.url,
+        };
+    }
+
+    markupForDebugWorkflow() {
+        return `
+        <div class="w-[650px]">
+        <div class="flex items-center justify-center flex-col container text-pure">
+            <div class="p-4 border border-gray-500 w-[100%] h-[500px] rounded-md">
+                <div class="border-b border-gray-500 grid grid-cols-2 items-center justify-center">
+                    <div class="p-4 border-r border-gray-500 flex flex-col">
+                        <span class="text-primary">Action Name </span>
+                        <span class="text-sm">${this.actionName}</span>
+                    </div>
+                    <div class="p-4 flex flex-col">
+                        <span class="text-primary">Condition </span>
+                        <span class="text-sm">
+                            ${this.condition && this.condition}
+                        </span>
+                    </div>
+                </div>
+                <div class="border-b border-gray-500 grid grid-cols-2 items-center justify-center">
+                    <div class="p-4 border-r border-gray-500 flex flex-col">
+                        <span class="text-primary">True Condition Box Id</span>
+                        <span class="text-sm">${this.trueActionId}</span>
+                    </div>
+                    <div class="p-4 flex flex-col">
+                        <span class="text-primary">False Condition Box Id </span>
+                        <span class="text-sm">${this.falseActionId}</span>
+                    </div>
+                </div>
+                <div>
+                    <div class="p-2 flex flex-col">
+                        <span class="text-primary mb-2">Data</span>
+                        <textarea class="p-3 text-sm bg-dark border border-gray-500 rounded-md outline-none" rows="12">${
+                            this.data &&
+                            JSON.stringify(this.data).slice(
+                                0,
+                                Math.min(
+                                    JSON.stringify(this.data).length,
+                                    1000,
+                                ),
+                            )
+                        }...</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    `;
+    }
+
+    async getNextActions(input, nextActions) {
+        let action = this.getObj();
+        const http = new HTTPRequest(action);
+        try {
+            let { data } = await http.httpRequest();
+            this.updateActionStatus("SUCCESS");
+            this.data = data;
+            nextActions.push({ edge: this.childActionId, data });
+        } catch (error) {
+            console.log(error);
+            this.data = "ERROR ACCURED!";
+            this.updateActionStatus("ERROR");
+            notify("Something went wrong!", "danger");
+            return;
+        }
+    }
+
+    getWorflowCodeObj() {
+        return {
+            actionId: this.actionId,
+            // actionText: this.actionText,
+            actionName: this.actionName,
+            actionType: this.actionType,
+            parentActionId: null,
+            childAction: null,
+            data: this.data,
+            // icon: this.icon,
+            method: this.method,
+            authenticationType: this.authenticationType,
+            auth: this.auth,
+            username: this.username,
+            password: this.password,
+            token: this.token,
+            bodyType: this.bodyType,
+            body: this.body,
+            headers: this.headers,
+            url: this.url,
+        };
+    }
+
+    buildWorkflowCode(parentActionId, data, arg, cb) {
+        let output;
+        if (Array.isArray(arg)) {
+            data[arg[0]][arg[1]][arg[2]] = this.getWorflowCodeObj();
+            output = data[arg[0]][arg[1]][arg[2]];
+        } else {
+            data[arg] = this.getWorflowCodeObj();
+            output = data[arg];
+        }
+
+        output.parentActionId = parentActionId;
+        cb(this.childActionId, this.actionId, output, "childAction");
+    }
+}
+
+/** If conditon action */
 class IfConditionAction extends Action {
     constructor(actionId, parentActionId = null, childActionId = null) {
         super(
@@ -105,7 +409,7 @@ class IfConditionAction extends Action {
             parentActionId,
             childActionId,
             null,
-            "network-wired",
+            "device_hub",
         );
 
         this.trueActionId = null;
@@ -253,6 +557,37 @@ class IfConditionAction extends Action {
         };
     }
 
+    static async buildObjFromCode(parentActionId, data, map, cb, arg) {
+        if (map.has(parentActionId)) {
+            let parentAction = map.get(parentActionId);
+            if (Array.isArray(arg)) {
+                parentAction[arg[0]][arg[1]][arg[2]] = data.actionId;
+            } else {
+                parentAction[arg] = data.actionId;
+            }
+        }
+
+        let instance = new IfConditionAction(null);
+        instance.actionId = data.actionId;
+        // instance.actionText = action.actionText;
+        instance.actionName = data.actionName;
+        instance.actionType = data.actionType;
+        instance.parentActionId = data.parentActionId;
+        instance.childActionId = null;
+        instance.data = data.data;
+        // instance.icon = action.icon;
+        instance.trueActionId = null;
+        instance.falseActionId = null;
+        instance.condition = data.condition;
+        // instance.trueWrapperId = createId(),
+        // instance.falseWrapperId = action.falseWrapperId;
+        map.set(instance.actionId, instance);
+
+        await cb(instance.actionId, data.trueAction, map, "trueActionId");
+        await cb(instance.actionId, data.falseAction, map, "falseActionId");
+        await cb(instance.actionId, data.childAction, map, "childActionId");
+    }
+
     markupForDebugWorkflow() {
         return `
         <div class="w-[650px]">
@@ -354,6 +689,7 @@ class IfConditionAction extends Action {
     }
 }
 
+/** switch case action */
 class SwitchAction extends Action {
     constructor(actionId, parentActionId = null, childActionId = null) {
         super(
@@ -364,7 +700,7 @@ class SwitchAction extends Action {
             parentActionId,
             childActionId,
             null,
-            "toggle-off",
+            "switch",
         );
 
         this.conditions = {
@@ -760,6 +1096,54 @@ class SwitchAction extends Action {
         };
     }
 
+    static async buildObjFromCode(parentActionId, data, map, cb, arg) {
+        if (map.has(parentActionId)) {
+            let parentAction = map.get(parentActionId);
+            if (Array.isArray(arg)) {
+                parentAction[arg[0]][arg[1]][arg[2]] = data.actionId;
+            } else {
+                parentAction[arg] = data.actionId;
+            }
+        }
+        let newConditions = {};
+        let oldConditions = data.conditions;
+        for (let key in oldConditions) {
+            newConditions[createId()] = {
+                condition: oldConditions[key].condition,
+                childActionId: null,
+            };
+        }
+
+        let instance = new SwitchAction(null);
+        instance.actionId = data.actionId;
+        // instance.actionText = action.actionText;
+        instance.actionName = data.actionName;
+        instance.actionType = data.actionType;
+        instance.parentActionId = data.parentActionId;
+        instance.childActionId = null;
+        instance.data = data.data;
+        // instance.icon = action.icon;
+        instance.conditions = newConditions;
+        instance.leftActionId = null;
+        // instance.leftWrapperId = action.leftWrapperId;
+        instance.leftCondition = data.leftCondition;
+        // instance.defaultWrapperId = action.defaultWrapperId;
+        instance.defaultActionId = null;
+        map.set(instance.actionId, instance);
+
+        await cb(instance.actionId, data.leftAction, map, "leftActionId");
+        let cnt = 1;
+        for (let key in instance.conditions) {
+            await cb(instance.actionId, data.conditions[`Case_${cnt}`], map, [
+                "conditions",
+                key,
+                "childActionId",
+            ]);
+            cnt++;
+        }
+        await cb(instance.actionId, data.defaultAction, map, "defaultActionId");
+    }
+
     buildWorkflowCode(parentActionId, data, arg, cb) {
         let output;
         if (Array.isArray(arg)) {
@@ -787,6 +1171,7 @@ class SwitchAction extends Action {
     }
 }
 
+/** for loop action */
 class ForLoopAction extends Action {
     constructor(actionId, parentActionId = null, childActionId = null) {
         super(
@@ -797,7 +1182,7 @@ class ForLoopAction extends Action {
             parentActionId,
             childActionId,
             null,
-            "network-wired",
+            "laps",
         );
 
         this.rightActionId = null;
@@ -1033,6 +1418,36 @@ class ForLoopAction extends Action {
         };
     }
 
+    static async buildObjFromCode(parentActionId, data, map, cb, arg) {
+        if (map.has(parentActionId)) {
+            let parentAction = map.get(parentActionId);
+            if (Array.isArray(arg)) {
+                parentAction[arg[0]][arg[1]][arg[2]] = data.actionId;
+            } else {
+                parentAction[arg] = data.actionId;
+            }
+        }
+
+        let instance = new ForLoopAction(null);
+        instance.actionId = data.actionId;
+        // instance.actionText = data.actionText;
+        instance.actionName = data.actionName;
+        instance.actionType = data.actionType;
+        instance.parentActionId = data.parentActionId;
+        instance.childActionId = null;
+        instance.data = data.data;
+        // instance.icon = data.icon;
+        instance.rightActionId = null;
+        // instance.rightWrapperId = data.rightWrapperId;
+        instance.endValue = data.endValue;
+        instance.step = data.step;
+        instance.startValue = data.startValue;
+        map.set(instance.actionId, instance);
+
+        await cb(instance.actionId, data.rightAction, map, "rightActionId");
+        await cb(instance.actionId, data.childAction, map, "childActionId");
+    }
+
     buildWorkflowCode(parentActionId, data, arg, cb) {
         let output;
         if (Array.isArray(arg)) {
@@ -1049,6 +1464,7 @@ class ForLoopAction extends Action {
     }
 }
 
+/** Loop data action */
 class LoopDataAction extends Action {
     constructor(actionId, parentActionId = null, childActionId = null) {
         super(
@@ -1059,7 +1475,7 @@ class LoopDataAction extends Action {
             parentActionId,
             childActionId,
             null,
-            "network-wired",
+            "repeat",
         );
 
         this.rightActionId = null;
@@ -1178,6 +1594,34 @@ class LoopDataAction extends Action {
         return instance;
     }
 
+    static async buildObjFromCode(parentActionId, data, map, cb, arg) {
+        if (map.has(parentActionId)) {
+            let parentAction = map.get(parentActionId);
+            if (Array.isArray(arg)) {
+                parentAction[arg[0]][arg[1]][arg[2]] = data.actionId;
+            } else {
+                parentAction[arg] = data.actionId;
+            }
+        }
+
+        let instance = new LoopDataAction(null);
+        instance.actionId = data.actionId;
+        // instance.actionText = data.actionText;
+        instance.actionName = data.actionName;
+        instance.actionType = data.actionType;
+        instance.parentActionId = data.parentActionId;
+        instance.childActionId = null;
+        instance.data = data.data;
+        // instance.icon = data.icon;
+        instance.rightActionId = null;
+        // instance.rightWrapperId = data.rightWrapperId;
+        instance.dataForLoop = data.dataForLoop;
+        map.set(instance.actionId, instance);
+
+        await cb(instance.actionId, data.rightAction, map, "rightActionId");
+        await cb(instance.actionId, data.childAction, map, "childActionId");
+    }
+
     getObj() {
         return {
             actionId: this.actionId,
@@ -1281,6 +1725,7 @@ class LoopDataAction extends Action {
     }
 }
 
+/**Consloe log action */
 class ConsoleLogAction extends Action {
     constructor(actionId, parentActionId = null, childActionId = null) {
         super(
@@ -1291,7 +1736,7 @@ class ConsoleLogAction extends Action {
             parentActionId,
             childActionId,
             null,
-            "star",
+            "polymer",
         );
 
         this.consoleLogData = null;
@@ -1369,6 +1814,33 @@ class ConsoleLogAction extends Action {
         instance.icon = action.icon;
         instance.consoleLogData = action.consoleLogData;
         return instance;
+    }
+
+    static async buildObjFromCode(parentActionId, data, map, cb, arg) {
+        if (map.has(parentActionId)) {
+            let parentAction = map.get(parentActionId);
+            if (Array.isArray(arg)) {
+                parentAction[arg[0]][arg[1]][arg[2]] = data.actionId;
+            } else {
+                parentAction[arg] = data.actionId;
+            }
+        }
+
+        let instance = new ConsoleLogAction(null);
+        instance.actionId = data.actionId;
+        // instance.actionText = data.actionText;
+        instance.actionName = data.actionName;
+        instance.actionType = data.actionType;
+        instance.parentActionId = data.parentActionId;
+        instance.childActionId = null;
+        instance.data = data.data;
+        // instance.icon = data.icon;
+        instance.consoleLogData = data.consoleLogData;
+        // instance.rightWrapperId = data.rightWrapperId;
+        // instance.dataForLoop = action.dataForLoop;
+        map.set(instance.actionId, instance);
+
+        await cb(instance.actionId, data.childAction, map, "childActionId");
     }
 
     getObj() {
@@ -1476,6 +1948,7 @@ class ConsoleLogAction extends Action {
     }
 }
 
+/**Notification action */
 class NotificationAction extends Action {
     constructor(actionId, parentActionId = null, childActionId = null) {
         super(
@@ -1486,7 +1959,7 @@ class NotificationAction extends Action {
             parentActionId,
             childActionId,
             null,
-            "star",
+            "notifications",
         );
 
         this.notification = "🔥 New Notification Message!";
@@ -1592,6 +2065,33 @@ class NotificationAction extends Action {
         return instance;
     }
 
+    static async buildObjFromCode(parentActionId, data, map, cb, arg) {
+        if (map.has(parentActionId)) {
+            let parentAction = map.get(parentActionId);
+            if (Array.isArray(arg)) {
+                parentAction[arg[0]][arg[1]][arg[2]] = data.actionId;
+            } else {
+                parentAction[arg] = data.actionId;
+            }
+        }
+
+        let instance = new NotificationAction(null);
+        instance.actionId = data.actionId;
+        // instance.actionText = data.actionText;
+        instance.actionName = data.actionName;
+        instance.actionType = data.actionType;
+        instance.parentActionId = data.parentActionId;
+        instance.childActionId = null;
+        instance.data = data.data;
+        // instance.icon = data.icon;
+        // instance.consoleLogData = action.consoleLogData;
+        instance.notification = data.notification;
+        instance.type = data.type;
+        map.set(instance.actionId, instance);
+
+        await cb(instance.actionId, data.childAction, map, "childActionId");
+    }
+
     getObj() {
         return {
             actionId: this.actionId,
@@ -1692,6 +2192,7 @@ class NotificationAction extends Action {
     }
 }
 
+/**webhook action */
 class WebhookAction extends Action {
     constructor(actionId, parentActionId = null, childActionId = null) {
         super(
@@ -1702,7 +2203,7 @@ class WebhookAction extends Action {
             parentActionId,
             childActionId,
             null,
-            "star",
+            "web",
         );
 
         this.url = "";
@@ -1795,6 +2296,33 @@ class WebhookAction extends Action {
         instance.url = action.url;
         instance.method = action.method;
         return instance;
+    }
+
+    static async buildObjFromCode(parentActionId, data, map, cb, arg) {
+        if (map.has(parentActionId)) {
+            let parentAction = map.get(parentActionId);
+            if (Array.isArray(arg)) {
+                parentAction[arg[0]][arg[1]][arg[2]] = data.actionId;
+            } else {
+                parentAction[arg] = data.actionId;
+            }
+        }
+
+        let instance = new WebhookAction(null);
+        instance.actionId = data.actionId;
+        // instance.actionText = data.actionText;
+        instance.actionName = data.actionName;
+        instance.actionType = data.actionType;
+        instance.parentActionId = data.parentActionId;
+        instance.childActionId = null;
+        instance.data = data.data;
+        // instance.icon = data.icon;
+        // instance.consoleLogData = action.consoleLogData;
+        instance.url = data.url;
+        instance.method = data.method;
+        map.set(instance.actionId, instance);
+
+        await cb(instance.actionId, data.childAction, map, "childActionId");
     }
 
     getObj() {
@@ -1911,6 +2439,7 @@ class WebhookAction extends Action {
     }
 }
 
+/**code block action */
 class CodeBlockAction extends Action {
     constructor(actionId, parentActionId = null, childActionId = null) {
         super(
@@ -1921,7 +2450,7 @@ class CodeBlockAction extends Action {
             parentActionId,
             childActionId,
             null,
-            "star",
+            "function",
         );
 
         this.code = "";
@@ -2001,6 +2530,33 @@ class CodeBlockAction extends Action {
         instance.code = action.code;
         instance.context = action.context;
         return instance;
+    }
+
+    static async buildObjFromCode(parentActionId, data, map, cb, arg) {
+        if (map.has(parentActionId)) {
+            let parentAction = map.get(parentActionId);
+            if (Array.isArray(arg)) {
+                parentAction[arg[0]][arg[1]][arg[2]] = data.actionId;
+            } else {
+                parentAction[arg] = data.actionId;
+            }
+        }
+
+        let instance = new CodeBlockAction(null);
+        instance.actionId = data.actionId;
+        // instance.actionText = data.actionText;
+        instance.actionName = data.actionName;
+        instance.actionType = data.actionType;
+        instance.parentActionId = data.parentActionId;
+        instance.childActionId = null;
+        instance.data = data.data;
+        // instance.icon = data.icon;
+        // instance.consoleLogData = action.consoleLogData;
+        instance.code = data.code;
+        instance.context = data.context;
+        map.set(instance.actionId, instance);
+
+        await cb(instance.actionId, data.childAction, map, "childActionId");
     }
 
     getObj() {
@@ -2125,6 +2681,7 @@ class CodeBlockAction extends Action {
     }
 }
 
+/** send email action */
 class SendEmailAction extends Action {
     constructor(actionId, parentActionId = null, childActionId = null) {
         super(
@@ -2135,7 +2692,7 @@ class SendEmailAction extends Action {
             parentActionId,
             childActionId,
             null,
-            "star",
+            "email",
         );
 
         this.to = "";
@@ -2223,6 +2780,34 @@ class SendEmailAction extends Action {
         instance.subject = action.subject;
         instance.html = action.html;
         return instance;
+    }
+
+    static async buildObjFromCode(parentActionId, data, map, cb, arg) {
+        if (map.has(parentActionId)) {
+            let parentAction = map.get(parentActionId);
+            if (Array.isArray(arg)) {
+                parentAction[arg[0]][arg[1]][arg[2]] = data.actionId;
+            } else {
+                parentAction[arg] = data.actionId;
+            }
+        }
+
+        let instance = new SendEmailAction(null);
+        instance.actionId = data.actionId;
+        // instance.actionText = data.actionText;
+        instance.actionName = data.actionName;
+        instance.actionType = data.actionType;
+        instance.parentActionId = data.parentActionId;
+        instance.childActionId = null;
+        instance.data = data.data;
+        // instance.icon = data.icon;
+        instance.to = data.to;
+        instance.from = data.from;
+        instance.subject = data.subject;
+        instance.html = data.html;
+        map.set(instance.actionId, instance);
+
+        await cb(instance.actionId, data.childAction, map, "childActionId");
     }
 
     getObj() {

@@ -99,7 +99,7 @@ async function createNewWorkflows() {
                 root: rootId,
                 createdAt: firebase.firestore.Timestamp.fromDate(new Date()),
             };
-            body[rootId] = new IfConditionAction(rootId).getObj();
+            body[rootId] = new HTTPRequestAction(rootId).getObj();
             db.collection("workflows")
                 .add(body)
                 .then((docRef) => {
